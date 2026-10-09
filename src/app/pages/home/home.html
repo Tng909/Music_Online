@@ -1,0 +1,83 @@
+<div class="px-6 pb-10 -mt-2">
+  <!-- Gradient hero -->
+  <div class="rounded-lg bg-gradient-to-b from-[#4a1d5e] via-[#2a1240]/80 to-[#121212] -mx-6 px-6 pt-6 pb-4">
+    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight mb-4">{{ greeting() }}</h1>
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
+      @for (p of quickPicks; track p.id) {
+        <button (click)="playQuick(p.id)"
+          class="group flex items-center gap-3 bg-white/10 hover:bg-white/20 transition rounded-md overflow-hidden text-left">
+          <span [class]="'w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center text-3xl shrink-0 bg-gradient-to-br ' + p.gradient">
+            {{ p.emoji }}
+          </span>
+          <span class="flex-1 text-sm font-bold truncate pr-2">{{ p.title }}</span>
+          <span class="w-10 h-10 mr-3 rounded-full bg-[#1ed760] text-black hidden group-hover:flex items-center justify-center shrink-0">
+            <svg viewBox="0 0 24 24" class="w-5 h-5 translate-x-[1px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+          </span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Made for you -->
+  <section class="mt-6">
+    <div class="flex items-end justify-between mb-3">
+      <div>
+        <h2 class="text-xl md:text-2xl font-extrabold hover:underline cursor-pointer">Made For You</h2>
+        <p class="text-sm text-[#b3b3b3]">Get better recommendations the more you listen.</p>
+      </div>
+      <a routerLink="/search" class="text-xs font-bold tracking-widest text-[#b3b3b3] hover:text-white">SHOW ALL</a>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      @for (p of madeForYou; track p.id) {
+        <app-media-card [item]="p" kind="playlist" />
+      }
+    </div>
+  </section>
+
+  <!-- Top charts strip -->
+  <section class="mt-8">
+    <h2 class="text-xl md:text-2xl font-extrabold mb-3">Your top mixes</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      @for (tr of chartTracks; track tr.id) {
+        <app-media-card [item]="tr" kind="track" [context]="chartTracks" />
+      }
+    </div>
+  </section>
+
+  <!-- Popular artists -->
+  <section class="mt-8">
+    <div class="flex items-end justify-between mb-3">
+      <h2 class="text-xl md:text-2xl font-extrabold hover:underline cursor-pointer">Popular artists</h2>
+      <a routerLink="/search" class="text-xs font-bold tracking-widest text-[#b3b3b3] hover:text-white">SHOW ALL</a>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      @for (a of artists; track a.id) {
+        <div class="group/card bg-transparent hover:bg-[#181818] transition-colors rounded-lg p-4 flex flex-col gap-3 cursor-pointer">
+          <div class="relative">
+            <div [class]="'aspect-square w-full rounded-full flex items-center justify-center text-5xl bg-gradient-to-br shadow-lg ' + a.gradient">
+              {{ a.emoji }}
+            </div>
+            <button title="Play artist"
+              class="play-btn absolute bottom-2 right-2 w-12 h-12 rounded-full bg-[#1ed760] text-black flex items-center justify-center shadow-xl hover:scale-105">
+              <svg viewBox="0 0 24 24" class="w-6 h-6 translate-x-[1px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+            </button>
+          </div>
+          <div>
+            <p class="text-[15px] font-bold text-white truncate hover:underline">{{ a.name }}</p>
+            <p class="text-sm text-[#b3b3b3]">Artist • {{ a.followers }} monthly</p>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- All playlists -->
+  <section class="mt-8">
+    <h2 class="text-xl md:text-2xl font-extrabold mb-3">Featured playlists</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      @for (p of topPlaylists; track p.id) {
+        <app-media-card [item]="p" kind="playlist" />
+      }
+    </div>
+  </section>
+</div>

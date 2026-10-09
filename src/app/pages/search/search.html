@@ -1,0 +1,53 @@
+<div class="px-6 pb-10">
+  <!-- Search input -->
+  <div class="py-4">
+    <div class="relative max-w-[380px]">
+      <svg viewBox="0 0 24 24" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#121212]" fill="currentColor"><path d="M7 1.75a5.25 5.25 0 1 0 0 10.5 5.25 5.25 0 0 0 0-10.5zM.25 7a6.75 6.75 0 1 1 12.096 4.12l3.535 3.536a.75.75 0 1 1-1.06 1.06l-3.536-3.535A6.75 6.75 0 0 1 .25 7z"/></svg>
+      <input [value]="query()" (input)="query.set($any($event.target).value)"
+        placeholder="What do you want to listen to?"
+        class="w-full rounded-full bg-white text-black text-sm pl-9 pr-4 py-2.5 outline-none placeholder:text-[#6a6a6a] focus:ring-2 focus:ring-white" />
+      @if (query()) {
+        <button (click)="query.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-black/60 hover:text-black">✕</button>
+      }
+    </div>
+  </div>
+
+  @if (!query()) {
+    <h1 class="text-xl md:text-2xl font-extrabold mb-4">Browse all</h1>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      @for (c of browseCards; track c.title) {
+        <div [class]="'relative overflow-hidden rounded-lg h-24 sm:h-28 p-4 cursor-pointer hover:scale-[1.02] transition-transform bg-gradient-to-br ' + c.gradient">
+          <p class="text-lg sm:text-xl font-extrabold">{{ c.title }}</p>
+          <span class="absolute -bottom-2 -right-2 text-6xl rotate-[25deg] drop-shadow-lg">{{ c.emoji }}</span>
+        </div>
+      }
+    </div>
+  } @else {
+    <h1 class="text-xl md:text-2xl font-extrabold mb-1">Results for "{{ query() }}"</h1>
+    <p class="text-sm text-[#b3b3b3] mb-4">{{ results().tracks.length }} songs • {{ results().playlists.length }} playlists • {{ results().artists.length }} artists</p>
+
+    @if (results().tracks.length) {
+      <h2 class="text-lg font-extrabold mb-3">Songs</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-8">
+        @for (t of results().tracks; track t.id) {
+          <app-media-card [item]="t" kind="track" [context]="results().tracks" />
+        }
+      </div>
+    }
+    @if (results().playlists.length) {
+      <h2 class="text-lg font-extrabold mb-3">Playlists</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-8">
+        @for (p of results().playlists; track p.id) {
+          <app-media-card [item]="p" kind="playlist" />
+        }
+      </div>
+    }
+    @if (!results().tracks.length && !results().playlists.length && !results().artists.length) {
+      <div class="text-center py-16">
+        <p class="text-4xl mb-3">🔍</p>
+        <p class="text-lg font-bold">No results found for "{{ query() }}"</p>
+        <p class="text-sm text-[#b3b3b3]">Check the spelling, or try a different search.</p>
+      </div>
+    }
+  }
+</div>

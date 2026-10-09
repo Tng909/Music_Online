@@ -1,0 +1,33 @@
+<header class="sticky top-0 z-20 flex items-center gap-3 px-6 py-4 bg-black/40 backdrop-blur-md rounded-t-lg">
+  <div class="hidden md:flex items-center gap-2">
+    <button (click)="goBack()" title="Go back"
+      class="w-8 h-8 rounded-full bg-black/70 flex items-center justify-center text-[#b3b3b3] hover:text-white transition">
+      <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M15.54 21.15 5.095 12.23a1 1 0 0 1 0-1.46L15.54 1.85a1 1 0 0 1 1.46 0l.01.01a1 1 0 0 1 0 1.46L8.24 12l8.77 8.68a1 1 0 0 1 0 1.46l-.01.01a1 1 0 0 1-1.46 0z"/></svg>
+    </button>
+    <button (click)="goForward()" title="Go forward"
+      class="w-8 h-8 rounded-full bg-black/70 flex items-center justify-center text-[#b3b3b3] hover:text-white transition">
+      <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M8.46 1.85 18.905 10.77a1 1 0 0 1 0 1.46L8.46 21.15a1 1 0 0 1-1.46 0l-.01-.01a1 1 0 0 1 0-1.46L15.76 12 6.99 3.32a1 1 0 0 1 0-1.46l.01-.01a1 1 0 0 1 1.46 0z"/></svg>
+    </button>
+  </div>
+
+  <!-- Mobile logo -->
+  <a routerLink="/" class="md:hidden flex items-center gap-2 font-extrabold text-lg tracking-tight">
+    <span class="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+      <svg viewBox="0 0 24 24" class="w-5 h-5 text-black" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.521 17.34c-.24.359-.66.48-1.02.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.56.3z"/></svg>
+    </span>
+    MusicOnline
+  </a>
+
+  <div class="flex-1"></div>
+
+  <a routerLink="/premium"
+    class="hidden sm:inline-block text-sm font-bold text-black bg-white rounded-full px-4 py-1.5 hover:scale-105 transition-transform">
+    Explore Premium
+  </a>
+  <button class="hidden sm:flex items-center gap-1.5 text-sm font-bold text-[#b3b3b3] hover:text-white hover:scale-105 transition">
+    <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 16.5A7.5 7.5 0 1 1 19.5 12 7.508 7.508 0 0 1 12 19.5zm0-11.25A.75.75 0 0 1 12.75 9v3.281l2.09 2.09a.75.75 0 0 1-1.061 1.061l-2.379-2.379A.751.751 0 0 1 11.25 12V9a.75.75 0 0 1 .75-.75z"/></svg>
+    Install App
+  </button>
+  <button class="w-8 h-8 rounded-full bg-[#1ed760] text-black font-extrabold hover:scale-105 transition" title="Notifications">🔔</button>
+  <button class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm hover:scale-105 transition" title="Profile">T</button>
+</header>

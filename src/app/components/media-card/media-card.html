@@ -1,0 +1,16 @@
+<a [routerLink]="link"
+  class="group/card bg-[#181818] hover:bg-[#282828] transition-colors rounded-lg p-4 flex flex-col gap-3 cursor-pointer">
+  <div class="relative">
+    <div [class]="'aspect-square w-full flex items-center justify-center text-5xl shadow-lg bg-gradient-to-br ' + item.gradient + (round ? ' rounded-full' : ' rounded-md')">
+      <span>{{ item.emoji }}</span>
+    </div>
+    <button (click)="play($event)" title="Play"
+      class="play-btn absolute bottom-2 right-2 w-12 h-12 rounded-full bg-[#1ed760] text-black flex items-center justify-center shadow-xl hover:scale-105 hover:bg-[#1fdf64]">
+      <svg viewBox="0 0 24 24" class="w-6 h-6 translate-x-[1px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+    </button>
+  </div>
+  <div class="min-h-[3.2rem]">
+    <p class="text-[15px] font-bold text-white truncate">{{ title }}</p>
+    <p class="text-sm text-[#b3b3b3] line-clamp-2 leading-snug mt-1">{{ subtitle }}</p>
+  </div>
+</a>

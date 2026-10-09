@@ -1,0 +1,78 @@
+@if (playlist(); as pl) {
+  <div class="pb-10">
+    <!-- Header -->
+    <div [class]="'flex flex-col sm:flex-row items-start sm:items-end gap-6 px-6 pt-10 pb-6 bg-gradient-to-b ' + pl.gradient + ' to-[#121212]/0 rounded-t-lg'">
+      <div [class]="'w-40 h-40 sm:w-56 sm:h-56 rounded-lg flex items-center justify-center text-7xl sm:text-8xl shadow-2xl shrink-0 bg-gradient-to-br ' + pl.gradient">
+        {{ pl.emoji }}
+      </div>
+      <div class="min-w-0">
+        <p class="text-sm font-medium">Playlist</p>
+        <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-none my-2">{{ pl.title }}</h1>
+        <p class="text-sm text-white/70">{{ pl.description }}</p>
+        <p class="text-sm mt-2">
+          <span class="font-bold">MusicOnline</span>
+          <span class="text-white/70"> • {{ pl.likes }} likes • {{ pl.tracks.length }} songs</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-5 px-6 py-4">
+      <button (click)="playAll()" title="Play"
+        class="w-14 h-14 rounded-full bg-[#1ed760] text-black flex items-center justify-center hover:scale-105 hover:bg-[#1fdf64] transition">
+        @if (isPlaying()) {
+          <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+        } @else {
+          <svg viewBox="0 0 24 24" class="w-7 h-7 translate-x-[2px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+        }
+      </button>
+      <button class="text-[#b3b3b3] hover:text-white text-3xl leading-none" title="More">•••</button>
+    </div>
+
+    <!-- Track list -->
+    <div class="px-6">
+      <div class="hidden sm:grid grid-cols-[16px_1fr_120px_80px] gap-4 px-4 pb-2 text-xs tracking-wider text-[#b3b3b3] border-b border-white/10">
+        <span>#</span><span>TITLE</span><span class="text-right">PLAYS</span><span class="text-right">⏱</span>
+      </div>
+      @for (t of pl.tracks; track t.id; let i = $index) {
+        <div (click)="playTrack(t.id)"
+          [class]="currentId() === t.id ? 'text-[#1ed760]' : 'text-white'"
+          class="group grid grid-cols-[32px_1fr_60px] sm:grid-cols-[16px_1fr_120px_80px] items-center gap-4 px-4 py-2.5 rounded-md hover:bg-white/10 cursor-pointer">
+          <span class="text-sm text-[#b3b3b3] tabular-nums flex items-center">
+            @if (currentId() === t.id && isPlaying()) {
+              <span class="flex items-end gap-[2px] h-4">
+                <span class="eq-bar w-[3px] h-4 bg-[#1ed760]" style="animation-delay: 0s"></span>
+                <span class="eq-bar w-[3px] h-4 bg-[#1ed760]" style="animation-delay: 0.25s"></span>
+                <span class="eq-bar w-[3px] h-4 bg-[#1ed760]" style="animation-delay: 0.5s"></span>
+              </span>
+            } @else {
+              <span class="group-hover:hidden">{{ i + 1 }}</span>
+              <svg viewBox="0 0 24 24" class="w-4 h-4 text-white hidden group-hover:block" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+            }
+          </span>
+          <div class="flex items-center gap-3 min-w-0">
+            <div [class]="'w-10 h-10 rounded flex items-center justify-center text-lg shrink-0 bg-gradient-to-br ' + t.gradient">
+              {{ t.emoji }}
+            </div>
+            <div class="min-w-0">
+              <p class="text-[15px] truncate">{{ t.title }} @if (t.explicit) { <span class="ml-1 text-[10px] align-middle bg-white/20 text-white rounded-sm px-1 py-px">E</span> }</p>
+              <p class="text-sm text-[#b3b3b3] truncate">{{ t.artist }}</p>
+            </div>
+          </div>
+          <span class="hidden sm:block text-sm text-[#b3b3b3] text-right tabular-nums">{{ t.plays }}</span>
+          <span class="text-sm text-[#b3b3b3] text-right tabular-nums">{{ fmt(t.duration) }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="px-6 mt-8">
+      <a routerLink="/" class="text-sm font-bold text-[#b3b3b3] hover:text-white">← Back to Home</a>
+    </div>
+  </div>
+} @else {
+  <div class="p-10 text-center">
+    <p class="text-2xl mb-2">😢</p>
+    <p class="font-bold">Playlist not found</p>
+    <a routerLink="/" class="text-sm text-[#b3b3b3] hover:text-white underline">Go home</a>
+  </div>
+}

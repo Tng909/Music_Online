@@ -42,9 +42,13 @@
       @for (p of playlists(); track p.id) {
         <a [routerLink]="['/playlist', p.id]"
           class="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 transition-colors group">
-          <div [class]="'w-12 h-12 rounded flex items-center justify-center text-2xl shrink-0 bg-gradient-to-br ' + p.gradient">
-            {{ p.emoji }}
-          </div>
+          @if (p.coverUrl; as url) {
+            <img [src]="url" [alt]="p.title" class="w-12 h-12 rounded object-cover shrink-0" />
+          } @else {
+            <div [class]="'w-12 h-12 rounded flex items-center justify-center text-2xl shrink-0 bg-gradient-to-br ' + p.gradient">
+              {{ p.emoji }}
+            </div>
+          }
           <div class="min-w-0">
             <p class="text-sm font-medium text-white truncate">{{ p.title }}</p>
             <p class="text-[13px] text-[#b3b3b3] truncate">Playlist • {{ p.likes }}</p>

@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LibraryService } from '../../services/library.service';
+import { MusicService } from '../../services/music.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -9,8 +10,9 @@ import { LibraryService } from '../../services/library.service';
 })
 export class Sidebar {
   private library = inject(LibraryService);
+  music = inject(MusicService);
 
-  playlists = this.library.playlists;
+  playlists = this.music.playlists;
   activeFilter = this.library.activeFilter;
 
   filters = ['Playlists', 'Artists', 'Albums'] as const;
@@ -19,3 +21,4 @@ export class Sidebar {
     this.library.setFilter(f);
   }
 }
+

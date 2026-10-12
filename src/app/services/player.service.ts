@@ -15,6 +15,10 @@ export class PlayerService {
   private queue = signal<Track[]>([]);
   private timer: ReturnType<typeof setInterval> | null = null;
 
+  /** Real playback when the song has audioUrl (files in public/audio/). */
+  private audio: HTMLAudioElement | null = null;
+  private audioSrcKey: string | null = null;
+
   readonly hasTrack = computed(() => this.currentTrack() !== null);
   readonly progressPercent = computed(() => {
     const track = this.currentTrack();
@@ -32,11 +36,18 @@ export class PlayerService {
     this.currentTrack.set(track);
     this.progress.set(0);
     this.isPlaying.set(true);
+    if (track.audioUrl && this.audioSrcKey !== track.audioUrl) {
+      this.audioSrcKey = track.audioUrl;
+      const a = this.ensureAudio();
+      if (a) a.src = track.audioUrl;
+    }
+    this.applyAudioState();
   }
 
   toggle(): void {
     if (!this.currentTrack()) return;
     this.isPlaying.update((v) => !v);
+    this.applyAudioState();
   }
 
   next(): void {
@@ -53,9 +64,7 @@ export class PlayerService {
     } else {
       idx = (idx + 1) % q.length;
     }
-    this.currentTrack.set(q[idx]);
-    this.progress.set(0);
-    this.isPlaying.set(true);
+    this.playTrack(q[idx], q);
   }
 
   prev(): void {
@@ -69,24 +78,26 @@ export class PlayerService {
     if (!q.length) return;
     const idx = q.findIndex((x) => x.id === cur.id);
     const prevIdx = (idx - 1 + q.length) % q.length;
-    this.currentTrack.set(q[prevIdx]);
-    this.progress.set(0);
-    this.isPlaying.set(true);
+    this.playTrack(q[prevIdx], q);
   }
 
   seekTo(seconds: number): void {
     const track = this.currentTrack();
     if (!track) return;
-    this.progress.set(Math.max(0, Math.min(track.duration, seconds)));
+    const clamped = Math.max(0, Math.min(track.duration, seconds));
+    this.progress.set(clamped);
+    if (this.audio?.src) this.audio.currentTime = clamped;
   }
 
   setVolume(v: number): void {
     this.volume.set(Math.max(0, Math.min(100, v)));
     if (v > 0) this.isMuted.set(false);
+    this.applyAudioState();
   }
 
   toggleMute(): void {
     this.isMuted.update((v) => !v);
+    this.applyAudioState();
   }
 
   toggleShuffle(): void {
@@ -118,10 +129,22 @@ export class PlayerService {
       if (!this.isPlaying()) return;
       const track = this.currentTrack();
       if (!track) return;
+
+      // Real audio file playing → follow its clock.
+      if (this.audio?.src && !this.audio.paused && !this.audio.ended) {
+        this.progress.set(this.audio.currentTime);
+        return;
+      }
+      if (this.audio?.src && this.audio.ended) {
+        this.next();
+        return;
+      }
+
       const next = this.progress() + 1;
       if (next >= track.duration) {
         if (this.repeatMode() === 'one') {
           this.progress.set(0);
+          if (this.audio?.src) this.audio.currentTime = 0;
         } else {
           this.next();
         }
@@ -129,5 +152,38 @@ export class PlayerService {
         this.progress.set(next);
       }
     }, 1000);
+  }
+
+  private ensureAudio(): HTMLAudioElement | null {
+    if (typeof Audio === 'undefined') return null; // non-browser (tests)
+    if (!this.audio) this.audio = new Audio();
+    return this.audio;
+  }
+
+  /** Sync the HTMLAudioElement with current signals (play/pause/volume). */
+  private applyAudioState(): void {
+    const track = this.currentTrack();
+    const url = track?.audioUrl ?? null;
+    if (!url) {
+      if (this.audio) this.audio.pause();
+      return;
+    }
+    const a = this.ensureAudio();
+    if (!a) return;
+    if (this.audioSrcKey !== url) {
+      this.audioSrcKey = url;
+      a.src = url;
+    }
+    a.volume = this.isMuted() ? 0 : this.volume() / 100;
+    if (this.isPlaying()) {
+      try {
+        const p = a.play();
+        if (p && typeof p.catch === 'function') p.catch(() => undefined);
+      } catch {
+        /* jsdom / autoplay restrictions — simulated ticker takes over */
+      }
+    } else {
+      a.pause();
+    }
   }
 }

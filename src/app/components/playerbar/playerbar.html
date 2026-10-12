@@ -2,9 +2,13 @@
   <!-- Left: track info -->
   <div class="flex items-center gap-3 w-[30%] min-w-0">
     @if (track(); as t) {
-      <div [class]="'w-14 h-14 rounded-md flex items-center justify-center text-2xl shrink-0 bg-gradient-to-br ' + t.gradient">
-        {{ t.emoji }}
-      </div>
+      @if (t.coverUrl; as url) {
+        <img [src]="url" [alt]="t.title" class="w-14 h-14 rounded-md object-cover shrink-0" />
+      } @else {
+        <div [class]="'w-14 h-14 rounded-md flex items-center justify-center text-2xl shrink-0 bg-gradient-to-br ' + t.gradient">
+          {{ t.emoji }}
+        </div>
+      }
       <div class="min-w-0 hidden xs:block sm:block">
         <p class="text-sm font-medium text-white truncate hover:underline cursor-pointer">{{ t.title }}</p>
         <p class="text-xs text-[#b3b3b3] truncate hover:underline hover:text-white cursor-pointer">{{ t.artist }}</p>

@@ -1,7 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ARTISTS, PLAYLISTS, TRACKS, Track } from '../../data/music-data';
+import { Track } from '../../data/music-data';
 import { PlayerService } from '../../services/player.service';
+import { MusicService } from '../../services/music.service';
 import { MediaCard } from '../../components/media-card/media-card';
 
 const BROWSE_CARDS = [
@@ -26,6 +27,7 @@ const BROWSE_CARDS = [
 })
 export class Search {
   player = inject(PlayerService);
+  music = inject(MusicService);
   private route = inject(ActivatedRoute);
 
   query = signal('');
@@ -41,16 +43,17 @@ export class Search {
     const q = this.query().trim().toLowerCase();
     if (!q) return { tracks: [] as Track[], playlists: [], artists: [] };
     return {
-      tracks: TRACKS.filter(
+      tracks: this.music.songs().filter(
         (t) =>
           t.title.toLowerCase().includes(q) ||
           t.artist.toLowerCase().includes(q) ||
           t.album.toLowerCase().includes(q),
       ),
-      playlists: PLAYLISTS.filter(
+      playlists: this.music.playlists().filter(
         (p) => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
       ),
-      artists: ARTISTS.filter((a) => a.name.toLowerCase().includes(q)),
+      artists: this.music.artists().filter((a) => a.name.toLowerCase().includes(q)),
     };
   });
 }
+

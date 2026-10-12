@@ -1,7 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ARTISTS, PLAYLISTS, TRACKS } from '../../data/music-data';
 import { PlayerService } from '../../services/player.service';
+import { MusicService } from '../../services/music.service';
 import { MediaCard } from '../../components/media-card/media-card';
 
 @Component({
@@ -11,13 +11,18 @@ import { MediaCard } from '../../components/media-card/media-card';
 })
 export class Home {
   player = inject(PlayerService);
+  music = inject(MusicService);
 
   greeting = signal(this.computeGreeting());
-  quickPicks = PLAYLISTS.slice(0, 6);
-  madeForYou = PLAYLISTS.slice(2, 8);
-  topPlaylists = PLAYLISTS;
-  artists = ARTISTS;
-  chartTracks = TRACKS.slice(0, 5);
+
+  playlists = this.music.playlists;
+  artists = this.music.artists;
+  backendOk = this.music.backendOk;
+
+  quickPicks = computed(() => this.playlists().slice(0, 6));
+  madeForYou = computed(() => this.playlists().slice(2, 8));
+  topPlaylists = this.playlists;
+  chartTracks = this.music.topSongs;
   currentId = this.player.currentTrack;
 
   private computeGreeting(): string {
@@ -28,7 +33,8 @@ export class Home {
   }
 
   playQuick(id: string): void {
-    const pl = PLAYLISTS.find((p) => p.id === id);
+    const pl = this.music.getPlaylist(id);
     if (pl?.tracks.length) this.player.playTrack(pl.tracks[0], pl.tracks);
   }
 }
+

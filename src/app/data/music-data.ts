@@ -8,6 +8,10 @@ export interface Track {
   gradient: string;
   emoji: string;
   explicit?: boolean;
+  /** Path under public/, e.g. "/covers/after-hours.jpg" — null = show gradient */
+  coverUrl?: string | null;
+  /** Path under public/, e.g. "/audio/blinding-lights.mp3" — null = simulated playback */
+  audioUrl?: string | null;
 }
 
 export interface Playlist {
@@ -18,6 +22,7 @@ export interface Playlist {
   emoji: string;
   likes: string;
   tracks: Track[];
+  coverUrl?: string | null;
 }
 
 export interface Artist {
@@ -26,7 +31,9 @@ export interface Artist {
   followers: string;
   gradient: string;
   emoji: string;
+  coverUrl?: string | null;
 }
+
 
 const t = (
   id: string,

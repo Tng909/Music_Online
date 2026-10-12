@@ -1,0 +1,3 @@
+# Database
+server/data/*.json is tracked in git on purpose — it IS the shared database.
+Do not ignore it.

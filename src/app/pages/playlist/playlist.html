@@ -2,8 +2,14 @@
   <div class="pb-10">
     <!-- Header -->
     <div [class]="'flex flex-col sm:flex-row items-start sm:items-end gap-6 px-6 pt-10 pb-6 bg-gradient-to-b ' + pl.gradient + ' to-[#121212]/0 rounded-t-lg'">
-      <div [class]="'w-40 h-40 sm:w-56 sm:h-56 rounded-lg flex items-center justify-center text-7xl sm:text-8xl shadow-2xl shrink-0 bg-gradient-to-br ' + pl.gradient">
-        {{ pl.emoji }}
+      <div class="relative w-40 h-40 sm:w-56 sm:h-56 shrink-0">
+        @if (pl.coverUrl; as url) {
+          <img [src]="url" [alt]="pl.title" class="w-full h-full object-cover rounded-lg shadow-2xl" />
+        } @else {
+          <div [class]="'w-full h-full rounded-lg flex items-center justify-center text-7xl sm:text-8xl shadow-2xl bg-gradient-to-br ' + pl.gradient">
+            {{ pl.emoji }}
+          </div>
+        }
       </div>
       <div class="min-w-0">
         <p class="text-sm font-medium">Playlist</p>
@@ -51,9 +57,13 @@
             }
           </span>
           <div class="flex items-center gap-3 min-w-0">
-            <div [class]="'w-10 h-10 rounded flex items-center justify-center text-lg shrink-0 bg-gradient-to-br ' + t.gradient">
-              {{ t.emoji }}
-            </div>
+            @if (t.coverUrl; as url) {
+              <img [src]="url" [alt]="t.title" class="w-10 h-10 rounded object-cover shrink-0" />
+            } @else {
+              <div [class]="'w-10 h-10 rounded flex items-center justify-center text-lg shrink-0 bg-gradient-to-br ' + t.gradient">
+                {{ t.emoji }}
+              </div>
+            }
             <div class="min-w-0">
               <p class="text-[15px] truncate">{{ t.title }} @if (t.explicit) { <span class="ml-1 text-[10px] align-middle bg-white/20 text-white rounded-sm px-1 py-px">E</span> }</p>
               <p class="text-sm text-[#b3b3b3] truncate">{{ t.artist }}</p>

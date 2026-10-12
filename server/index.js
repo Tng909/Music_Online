@@ -11,6 +11,7 @@ const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
+const { createAuthRouter } = require('./auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,6 +38,9 @@ function withTracks(db, playlist) {
     .filter(Boolean);
   return { ...playlist, tracks };
 }
+
+// ---- Auth: user accounts (server/data/users.json) ----
+app.use('/api/auth', createAuthRouter());
 
 // ---- Songs (read-only) ----
 app.get('/api/songs', (_req, res) => {

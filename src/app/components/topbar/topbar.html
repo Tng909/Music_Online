@@ -20,14 +20,49 @@
 
   <div class="flex-1"></div>
 
-  <a routerLink="/premium"
-    class="hidden sm:inline-block text-sm font-bold text-black bg-white rounded-full px-4 py-1.5 hover:scale-105 transition-transform">
-    Explore Premium
-  </a>
-  <button class="hidden sm:flex items-center gap-1.5 text-sm font-bold text-[#b3b3b3] hover:text-white hover:scale-105 transition">
-    <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 16.5A7.5 7.5 0 1 1 19.5 12 7.508 7.508 0 0 1 12 19.5zm0-11.25A.75.75 0 0 1 12.75 9v3.281l2.09 2.09a.75.75 0 0 1-1.061 1.061l-2.379-2.379A.751.751 0 0 1 11.25 12V9a.75.75 0 0 1 .75-.75z"/></svg>
-    Install App
-  </button>
-  <button class="w-8 h-8 rounded-full bg-[#1ed760] text-black font-extrabold hover:scale-105 transition" title="Notifications">🔔</button>
-  <button class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm hover:scale-105 transition" title="Profile">T</button>
+  @if (auth.user(); as user) {
+    <div class="relative">
+      <button (click)="toggleMenu(); $event.stopPropagation()" type="button"
+        [attr.aria-expanded]="menuOpen()" aria-haspopup="menu" title="Your account"
+        class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm shrink-0 hover:scale-105 transition-transform">
+        {{ avatarLetter() }}
+      </button>
+
+      @if (menuOpen()) {
+        <div role="menu" (click)="$event.stopPropagation()"
+          class="absolute right-0 top-full mt-2 w-60 rounded-lg bg-[#282828] ring-1 ring-black/40 shadow-2xl p-1.5 z-30">
+          <!-- Account summary -->
+          <div class="px-3 py-2.5">
+            <p class="text-sm font-bold text-white truncate">{{ user.name }}</p>
+            <p class="text-xs text-[#a7a7a7] truncate">{{ user.email ?? user.phone }}</p>
+          </div>
+
+          <div class="my-1 h-px bg-white/10"></div>
+
+          <!-- Account management -->
+          <button type="button" role="menuitem" (click)="goToAccount()"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-bold text-white hover:bg-white/10 transition text-left">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 shrink-0" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/></svg>
+            Account
+          </button>
+
+          <!-- Log out -->
+          <button type="button" role="menuitem" (click)="logout()"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-bold text-white hover:bg-white/10 transition text-left">
+            <svg viewBox="0 0 24 24" class="w-4 h-4 shrink-0" fill="currentColor"><path d="M10.09 15.59 11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5a2 2 0 0 0-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>
+            Log out
+          </button>
+        </div>
+      }
+    </div>
+  } @else {
+    <a routerLink="/signup"
+      class="text-sm md:text-base font-bold text-white hover:scale-105 transition-transform">
+      Sign up
+    </a>
+    <a routerLink="/login"
+      class="text-sm md:text-base font-bold text-black bg-white rounded-full px-4 md:px-6 py-2 md:py-2.5 hover:scale-105 transition-transform">
+      Log in
+    </a>
+  }
 </header>

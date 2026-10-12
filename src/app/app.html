@@ -1,10 +1,23 @@
-<div class="h-screen flex flex-col gap-2 p-2 bg-black text-white">
+<!-- The <router-outlet> lives in <main> and is NEVER toggled, so switching
+     between the player shell and the full-screen auth pages never destroys
+     the active routed component. Only the chrome around it is conditional. -->
+<div [class]="isAuthRoute()
+  ? 'h-screen flex flex-col bg-black text-white'
+  : 'h-screen flex flex-col gap-2 p-2 bg-black text-white'">
   <div class="flex flex-1 gap-2 min-h-0">
-    <app-sidebar />
-    <main class="flex-1 min-w-0 bg-[#121212] rounded-lg overflow-y-auto relative">
-      <app-topbar />
+    @if (!isAuthRoute()) {
+      <app-sidebar />
+    }
+    <main [class]="isAuthRoute()
+      ? 'flex-1 min-w-0 overflow-y-auto'
+      : 'flex-1 min-w-0 bg-[#121212] rounded-lg overflow-y-auto relative'">
+      @if (!isAuthRoute()) {
+        <app-topbar />
+      }
       <router-outlet />
     </main>
   </div>
-  <app-playerbar />
+  @if (!isAuthRoute()) {
+    <app-playerbar />
+  }
 </div>

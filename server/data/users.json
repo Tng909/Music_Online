@@ -1,0 +1,22 @@
+{
+  "users": [
+    {
+      "id": "u_15f990f275ba",
+      "email": "demo@music.online",
+      "name": "Demo",
+      "provider": "email",
+      "passwordHash": "319614844011608bff1935f503cbfe84:eff6c1469e7702bf4aa4301aa59b31ef1703a8ecc453bc472ee7b4f059e70dde87c04d47992e29a193bdc2000039042118a681196a3261418aa2648ad14b66ed",
+      "phone": null,
+      "createdAt": "2026-10-12T08:12:53.194Z"
+    },
+    {
+      "id": "u_e180ce1a095d",
+      "email": "min@m.c",
+      "name": "Min",
+      "provider": "email",
+      "passwordHash": "c99e101fc67c22f4827de39790fdce1a:7e3dc697bd72237d90f8b8c84906eef25b8f76ba6d0cf8401cd5cbb124e44368c6491f3f2f3238fd91237d63a7c25b8f59971be979d6d42288e3c152276096a7",
+      "phone": null,
+      "createdAt": "2026-10-12T08:36:08.037Z"
+    }
+  ]
+}

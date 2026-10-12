@@ -1,0 +1,71 @@
+<div class="min-h-full flex flex-col items-center px-4 py-8">
+  <!-- Logo -->
+  <a routerLink="/" class="mb-6" title="Back to home">
+    <span class="w-12 h-12 rounded-full bg-white flex items-center justify-center hover:scale-105 transition">
+      <svg viewBox="0 0 24 24" class="w-7 h-7 text-black" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.521 17.34c-.24.359-.66.48-1.02.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.56.3z"/></svg>
+    </span>
+  </a>
+
+  <div class="w-full max-w-[465px]">
+    <h1 class="text-4xl sm:text-5xl font-black tracking-tight leading-[1.1] text-balance mb-8">
+      Welcome back
+    </h1>
+
+    <form (ngSubmit)="step() === 'email' ? next() : submit()" class="flex flex-col gap-4">
+      <label for="login-email" class="text-sm font-bold">Email</label>
+      <input
+        id="login-email"
+        name="email"
+        type="email"
+        required
+        [ngModel]="email()"
+        (ngModelChange)="email.set($event)"
+        placeholder="name@domain.com"
+        [class.hidden]="step() === 'password'"
+        class="h-12 rounded-[4px] border border-[#727272] bg-black px-4 text-base text-white placeholder:text-[#a7a7a7] outline-none focus:border-white"
+      />
+      @if (step() === 'password') {
+        <p class="text-sm text-[#b3b3b3] -mt-2">{{ email() }}</p>
+        <label for="login-password" class="text-sm font-bold">Password</label>
+        <input
+          id="login-password"
+          name="password"
+          type="password"
+          required
+          [ngModel]="password()"
+          (ngModelChange)="password.set($event)"
+          placeholder="Your password"
+          class="h-12 rounded-[4px] border border-[#727272] bg-black px-4 text-base text-white placeholder:text-[#a7a7a7] outline-none focus:border-white"
+        />
+      }
+      @if (error()) {
+        <p class="text-sm text-[#f37c7c]">{{ error() }}</p>
+      }
+      <button type="submit" [disabled]="auth.busy()"
+        class="h-12 rounded-full bg-[#1ed760] hover:bg-[#1fdf64] hover:scale-[1.02] transition text-black text-base font-bold disabled:opacity-60 disabled:hover:scale-100">
+        @if (auth.busy()) {
+          Please wait…
+        } @else if (step() === 'email') {
+          Continue
+        } @else {
+          Log in
+        }
+      </button>
+    </form>
+
+    @if (step() === 'password') {
+      <p class="text-center mt-4">
+        <button type="button" (click)="back()" class="text-sm font-bold text-[#b3b3b3] hover:text-white transition">← Back</button>
+      </p>
+    }
+
+    @if (step() === 'email') {
+      <app-auth-options context="login" />
+    }
+
+    <div class="text-center mt-12 mb-6">
+      <p class="text-[#b3b3b3] text-base">Don't have an account?</p>
+      <a routerLink="/signup" class="inline-block mt-4 text-base font-bold hover:underline">Sign up</a>
+    </div>
+  </div>
+</div>

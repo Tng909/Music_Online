@@ -3,6 +3,20 @@ import { TRACKS, Track } from '../data/music-data';
 
 export type RepeatMode = 'off' | 'all' | 'one';
 
+const LIKED_STORAGE_KEY = 'music-online-liked-v1';
+
+function loadLikedIds(fallback: string[]): Set<string> {
+  try {
+    if (typeof localStorage === 'undefined') return new Set(fallback);
+    const raw = localStorage.getItem(LIKED_STORAGE_KEY);
+    if (!raw) return new Set(fallback);
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? new Set(parsed.filter((v): v is string => typeof v === 'string')) : new Set(fallback);
+  } catch {
+    return new Set(fallback);
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class PlayerService {
   readonly currentTrack = signal<Track | null>(null);
@@ -12,7 +26,9 @@ export class PlayerService {
   readonly isMuted = signal(false);
   readonly isShuffled = signal(false);
   readonly repeatMode = signal<RepeatMode>('off');
-  readonly likedIds = signal<Set<string>>(new Set(['t1', 't6']));
+  /** Liked song ids — persisted to localStorage, survives reload. */
+  readonly likedIds = signal<Set<string>>(loadLikedIds(['t1', 't6']));
+  readonly likedCount = computed(() => this.likedIds().size);
 
   /**
    * Full catalog used for the radio fallback when the queue runs out.
@@ -227,6 +243,11 @@ export class PlayerService {
       const next = new Set(set);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      try {
+        localStorage.setItem(LIKED_STORAGE_KEY, JSON.stringify([...next]));
+      } catch {
+        /* storage full / private mode — likes just won't survive reload */
+      }
       return next;
     });
   }

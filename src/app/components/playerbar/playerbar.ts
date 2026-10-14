@@ -3,6 +3,7 @@ import { PlayerService } from '../../services/player.service';
 import { MusicService } from '../../services/music.service';
 import { formatTime } from '../../data/music-data';
 import { BluetoothControl } from '../bluetooth-control/bluetooth-control';
+import { DownloadService } from '../../services/download.service';
 
 @Component({
   selector: 'app-playerbar',
@@ -12,6 +13,7 @@ import { BluetoothControl } from '../bluetooth-control/bluetooth-control';
 export class Playerbar {
   player = inject(PlayerService);
   private music = inject(MusicService);
+  downloads = inject(DownloadService);
 
   track = this.player.currentTrack;
   isPlaying = this.player.isPlaying;
@@ -24,9 +26,18 @@ export class Playerbar {
   elapsed = computed(() => formatTime(this.scrubbing() ? this.scrubValue() : this.progress()));
   total = computed(() => formatTime(this.player.duration()));
 
+  /** Volume fill shown on the right-side slider — white once the user moves it, dimmer at rest. */
+  volumeFill = computed(() => {
+    const pct = this.isMuted() ? 0 : this.volume();
+    const filled = this.volumeTouched() ? '#fff' : 'rgba(255,255,255,0.7)';
+    return `linear-gradient(to right, ${filled} ${pct}%, rgba(255,255,255,0.25) ${pct}%)`;
+  });
+
   /** While dragging the progress bar, show the local preview, not the ticker. */
   scrubbing = signal(false);
   scrubValue = signal(0);
+  /** Set the first time the user drags the volume slider. */
+  volumeTouched = signal(false);
 
   /** Percent + fill shown on the slider (preview while scrubbing). */
   sliderPercent = computed(() => {
@@ -92,11 +103,32 @@ export class Playerbar {
 
   onVolume(event: Event): void {
     const el = event.target as HTMLInputElement;
+    this.volumeTouched.set(true);
     this.player.setVolume(Number(el.value));
   }
 
   liked(): boolean {
     const id = this.track()?.id;
     return id ? this.player.isLiked(id) : false;
+  }
+
+  downloadable(): boolean {
+    const t = this.track();
+    return t ? this.downloads.canDownload(t) : false;
+  }
+
+  downloaded(): boolean {
+    const id = this.track()?.id;
+    return id ? this.downloads.isDownloaded(id) : false;
+  }
+
+  downloading(): boolean {
+    const id = this.track()?.id;
+    return id ? this.downloads.isDownloading(id) : false;
+  }
+
+  downloadCurrent(): void {
+    const t = this.track();
+    if (t) void this.downloads.download(t);
   }
 }

@@ -1,5 +1,21 @@
 @if (supported()) {
-  <button (click)="toggleConnection()" [title]="label()"
+  <div class="relative shrink-0">
+    @if (status() === 'error' && (error() || canBroaden())) {
+      <div class="absolute bottom-full right-0 mb-2 w-64 rounded-lg border border-white/10 bg-[#1e1e1e] p-3 text-xs text-[#d4d4d4] shadow-xl z-50">
+        <p>{{ error() }}</p>
+        @if (canBroaden()) {
+          <button (click)="seeMoreDevices()"
+            class="mt-2 w-full rounded-full bg-white px-3 py-1.5 font-semibold text-black hover:bg-[#e5e5e5] transition">
+            See more devices
+          </button>
+        }
+        <button (click)="dismissError()"
+          class="mt-1.5 w-full rounded-full border border-white/15 px-3 py-1.5 text-[#b3b3b3] hover:text-white hover:border-white/30 transition">
+          Dismiss
+        </button>
+      </div>
+    }
+    <button (click)="toggleConnection()" [title]="label()"
     class="transition shrink-0" [class]="icoClass()">
     @switch (icon()) {
       @case ("bt-on") {
@@ -15,5 +31,6 @@
         <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7l10 10-5 5V2l5 5L7 17"/></svg>
       }
     }
-  </button>
+    </button>
+  </div>
 }

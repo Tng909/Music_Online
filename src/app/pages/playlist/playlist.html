@@ -37,13 +37,13 @@
 
     <!-- Track list -->
     <div class="px-6">
-      <div class="hidden sm:grid grid-cols-[16px_1fr_120px_80px] gap-4 px-4 pb-2 text-xs tracking-wider text-[#b3b3b3] border-b border-white/10">
-        <span>#</span><span>TITLE</span><span class="text-right">PLAYS</span><span class="text-right">⏱</span>
+      <div class="hidden sm:grid grid-cols-[16px_1fr_120px_48px_48px_80px] gap-4 px-4 pb-2 text-xs tracking-wider text-[#b3b3b3] border-b border-white/10">
+        <span>#</span><span>TITLE</span><span class="text-right">PLAYS</span><span></span><span></span><span class="text-right">⏱</span>
       </div>
       @for (t of pl.tracks; track t.id; let i = $index) {
         <div (click)="playTrack(t.id)"
           [class]="currentId() === t.id ? 'text-[#1ed760]' : 'text-white'"
-          class="group grid grid-cols-[32px_1fr_60px] sm:grid-cols-[16px_1fr_120px_80px] items-center gap-4 px-4 py-2.5 rounded-md hover:bg-white/10 cursor-pointer">
+          class="group grid grid-cols-[32px_1fr_40px_40px_60px] sm:grid-cols-[16px_1fr_120px_48px_48px_80px] items-center gap-4 px-4 py-2.5 rounded-md hover:bg-white/10 cursor-pointer">
           <span class="text-sm text-[#b3b3b3] tabular-nums flex items-center">
             @if (currentId() === t.id && isPlaying()) {
               <span class="flex items-end gap-[2px] h-4">
@@ -70,6 +70,39 @@
             </div>
           </div>
           <span class="hidden sm:block text-sm text-[#b3b3b3] text-right tabular-nums">{{ t.plays }}</span>
+          <span class="flex justify-center">
+            @if (downloads.isDownloading(t.id)) {
+              <span title="Downloading…" class="w-8 h-8 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-[#b3b3b3] animate-spin" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" /></svg>
+              </span>
+            } @else if (downloads.isDownloaded(t.id)) {
+              <button (click)="downloadTrack($event, t)" title="Download again"
+                class="w-8 h-8 rounded-full flex items-center justify-center text-[#1ed760] hover:bg-white/10 transition">
+                <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+              </button>
+            } @else if (downloads.canDownload(t)) {
+              <button (click)="downloadTrack($event, t)" title="Download to this device"
+                class="w-8 h-8 rounded-full flex items-center justify-center text-[#b3b3b3] hover:text-white hover:bg-white/10 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100">
+                <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16" /></svg>
+              </button>
+            } @else {
+              <span title="No audio file available" class="w-8 h-8 flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-[#535353]" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16" /></svg>
+              </span>
+            }
+          </span>
+          <span class="flex justify-center">
+            <button (click)="toggleLike($event, t.id)" [title]="isLiked(t.id) ? 'Remove from Liked Songs' : 'Add to Liked Songs'"
+              [class]="isLiked(t.id)
+                ? 'w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition'
+                : 'w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100'">
+              @if (isLiked(t.id)) {
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-[#1ed760]" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              } @else {
+                <svg viewBox="0 0 24 24" class="w-4 h-4 text-[#b3b3b3] hover:text-white" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              }
+            </button>
+          </span>
           <span class="text-sm text-[#b3b3b3] text-right tabular-nums">{{ fmt(t.duration) }}</span>
         </div>
       }

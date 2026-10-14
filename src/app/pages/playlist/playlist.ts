@@ -2,9 +2,10 @@ import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { formatTime } from '../../data/music-data';
+import { formatTime, Track } from '../../data/music-data';
 import { PlayerService } from '../../services/player.service';
 import { MusicService } from '../../services/music.service';
+import { DownloadService } from '../../services/download.service';
 
 @Component({
   selector: 'app-playlist',
@@ -14,6 +15,7 @@ import { MusicService } from '../../services/music.service';
 export class PlaylistPage {
   player = inject(PlayerService);
   music = inject(MusicService);
+  downloads = inject(DownloadService);
   private route = inject(ActivatedRoute);
 
   playlistId = toSignal(this.route.paramMap.pipe(map((p) => p.get('id') ?? '')), {
@@ -34,6 +36,21 @@ export class PlaylistPage {
     const pl = this.playlist();
     const track = pl?.tracks.find((t) => t.id === id);
     if (track && pl) this.player.playTrack(track, pl.tracks);
+  }
+
+  /** Save one song to the user's device (button stops the row's play click). */
+  downloadTrack(event: MouseEvent, track: Track): void {
+    event.stopPropagation();
+    void this.downloads.download(track);
+  }
+
+  toggleLike(event: MouseEvent, id: string): void {
+    event.stopPropagation();
+    this.player.toggleLike(id);
+  }
+
+  isLiked(id: string): boolean {
+    return this.player.isLiked(id);
   }
 }
 

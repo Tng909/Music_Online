@@ -15,6 +15,13 @@ export const BT_COMMAND_CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b3
 export const BT_STATE_CHARACTERISTIC_UUID = '0000ffe2-0000-1000-8000-00805f9b34fb';
 export const BT_TRACK_CHARACTERISTIC_UUID = '0000ffe3-0000-1000-8000-00805f9b34fb';
 
+/**
+ * Optional extra chooser filter: when non-empty, devices whose name starts
+ * with this prefix are also listed in the short (filtered) chooser alongside
+ * devices advertising BT_SERVICE_UUID.
+ */
+export const BT_DEVICE_NAME_PREFIX = '';
+
 /** Incoming command byte codes (first byte of the notification value). */
 const COMMAND_CODES: Record<number, BluetoothCommand> = {
   1: 'play',
@@ -53,8 +60,16 @@ interface BluetoothDevice {
   removeEventListener(type: 'gattserverdisconnected', listener: () => void): void;
 }
 
+interface BluetoothRequestDeviceFilter {
+  services?: string[];
+  name?: string;
+  namePrefix?: string;
+}
+
 interface Bluetooth {
   requestDevice(options: {
+    /** Mutually exclusive with acceptAllDevices; use filters to trim the chooser. */
+    filters?: BluetoothRequestDeviceFilter[];
     acceptAllDevices?: boolean;
     optionalServices?: string[];
   }): Promise<BluetoothDevice>;
@@ -82,6 +97,11 @@ export class BluetoothService {
   readonly status = signal<BluetoothStatus>('idle');
   readonly deviceName = signal<string | null>(null);
   readonly error = signal<string | null>(null);
+  /**
+   * True after a *filtered* pairing attempt found no device — lets the UI show
+   * a "See more devices" action that re-opens the chooser with acceptAllDevices.
+   */
+  readonly canBroaden = signal(false);
 
   /** Commands received from the sensor. */
   readonly commands$ = new Subject<BluetoothCommand>();
@@ -113,8 +133,17 @@ export class BluetoothService {
     this.commands$.subscribe((command) => this.applyCommand(command));
   }
 
-  /** Ask the user to pair with a sensor and start receiving commands. */
-  async connect(): Promise<void> {
+  /**
+   * Ask the user to pair with a sensor and start receiving commands.
+   *
+   * By default the chooser is filtered to devices advertising BT_SERVICE_UUID
+   * (a short, clean list). If the sensor is not in that list, the UI can call
+   * `connect({ acceptAll: true })` to re-open the chooser listing *every*
+   * nearby BLE device ("See more devices"). The two `requestDevice` options
+   * are mutually exclusive per the Web Bluetooth spec.
+   */
+  async connect(options?: { acceptAll?: boolean }): Promise<void> {
+    const acceptAll = options?.acceptAll === true;
     const bt = this.bluetooth();
     if (!bt) {
       this.error.set('Web Bluetooth is not available in this browser.');
@@ -123,11 +152,23 @@ export class BluetoothService {
     }
     this.status.set('connecting');
     this.error.set(null);
+    // Only a filtered attempt can be broadened — once we already show all
+    // devices there is nothing more to "see".
+    if (!acceptAll) this.canBroaden.set(false);
     try {
-      const device = await bt.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: [BT_SERVICE_UUID],
-      });
+      // Build the request options: a short filtered list by default, or the
+      // full accept-all list when the user asked to "see more".
+      const requestOptions: Parameters<Bluetooth['requestDevice']>[0] = acceptAll
+        ? { acceptAllDevices: true, optionalServices: [BT_SERVICE_UUID] }
+        : (() => {
+            const filters: BluetoothRequestDeviceFilter[] = [
+              { services: [BT_SERVICE_UUID] },
+            ];
+            if (BT_DEVICE_NAME_PREFIX) filters.push({ namePrefix: BT_DEVICE_NAME_PREFIX });
+            return { filters, optionalServices: [BT_SERVICE_UUID] };
+          })();
+
+      const device = await bt.requestDevice(requestOptions);
       this.device = device;
       this.deviceName.set(device.name ?? 'Bluetooth sensor');
 
@@ -153,14 +194,28 @@ export class BluetoothService {
 
       device.addEventListener('gattserverdisconnected', this.disconnectedListener);
       this.status.set('connected');
+      this.canBroaden.set(false);
 
       // Push the current state so the sensor catches up immediately.
       void this.writeState(this.player.isPlaying());
       void this.writeTrackInfo(this.player.currentTrack());
     } catch (err) {
       this.status.set('error');
+      // NotFoundError is the common "no device selected in the chooser" case.
+      // After a *filtered* attempt it usually means the sensor wasn't in the
+      // short list — offer "See more devices" (full accept-all chooser).
+      const notFound = err instanceof DOMException && err.name === 'NotFoundError';
+      if (notFound && !acceptAll) this.canBroaden.set(true);
       this.error.set(
-        err instanceof Error ? err.message : 'Failed to connect to Bluetooth sensor.'
+        notFound
+          ? !acceptAll
+            ? `No matching sensor found in the short list. Make sure it is powered on, ` +
+              'then try "See more devices" to scan every nearby Bluetooth device.'
+            : `No device was selected. Make sure the sensor is powered on, ` +
+              'Bluetooth is enabled, then pick it from the list.'
+          : err instanceof Error
+            ? err.message
+            : 'Failed to connect to Bluetooth sensor.'
       );
     }
   }
@@ -179,7 +234,15 @@ export class BluetoothService {
         });
     }
     if (this.device?.gatt?.connected) this.device.gatt.disconnect();
+    this.canBroaden.set(false);
     this.onDisconnected();
+  }
+
+  /** Dismiss the current error (hides the error / See-more popover). */
+  dismissError(): void {
+    this.error.set(null);
+    this.canBroaden.set(false);
+    if (this.status() === 'error') this.status.set('idle');
   }
 
   /** Pure command decoder — unit-testable without a real device. */

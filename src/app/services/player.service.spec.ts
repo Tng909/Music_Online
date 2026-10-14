@@ -119,6 +119,38 @@ describe('PlayerService', () => {
     expect(player.isLiked('t2')).toBe(false);
   });
 
+  it('persists liked songs across reloads', () => {
+    const store = new Map<string, string>();
+    const localStorageStub = {
+      getItem: (k: string) => (store.has(k) ? store.get(k)! : null),
+      setItem: (k: string, v: string) => void store.set(k, v),
+      removeItem: (k: string) => void store.delete(k),
+      clear: () => store.clear(),
+    };
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: localStorageStub,
+      configurable: true,
+      writable: true,
+    });
+    try {
+      const first = new PlayerService();
+      first.toggleLike('t3');
+      expect(first.isLiked('t3')).toBe(true);
+      expect(store.size).toBeGreaterThan(0);
+      first.destroy();
+
+      const second = new PlayerService();
+      expect(second.isLiked('t3')).toBe(true);
+      expect(second.likedCount()).toBeGreaterThanOrEqual(1);
+      second.toggleLike('t3');
+      expect(second.isLiked('t3')).toBe(false);
+      second.destroy();
+    } finally {
+      // @ts-expect-error jsdom provides the real one in the browser run
+      delete (globalThis as Record<string, unknown>)['localStorage'];
+    }
+  });
+
   it('cycles repeat modes off -> all -> one -> off', () => {
     expect(player.repeatMode()).toBe('off');
     player.cycleRepeat();

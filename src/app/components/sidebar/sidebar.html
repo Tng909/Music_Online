@@ -56,6 +56,18 @@
         </a>
       }
 
+      <!-- Downloads pinned -->
+      <a routerLink="/downloads"
+        class="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 transition-colors">
+        <div class="w-12 h-12 rounded flex items-center justify-center shrink-0 bg-gradient-to-br from-emerald-400 to-teal-600">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16" /></svg>
+        </div>
+        <div class="min-w-0">
+          <p class="text-sm font-medium text-white truncate">Downloads</p>
+          <p class="text-[13px] text-[#b3b3b3] truncate">Playlist • {{ downloadCount() }} song{{ downloadCount() === 1 ? '' : 's' }}</p>
+        </div>
+      </a>
+
       <!-- Liked Songs pinned -->
       <a routerLink="/liked"
         class="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 transition-colors">
@@ -64,7 +76,7 @@
         </div>
         <div class="min-w-0">
           <p class="text-sm font-medium text-white truncate">Liked Songs</p>
-          <p class="text-[13px] text-[#b3b3b3] truncate">Playlist • 127 songs</p>
+          <p class="text-[13px] text-[#b3b3b3] truncate">Playlist • {{ likedCount() }} song{{ likedCount() === 1 ? '' : 's' }}</p>
         </div>
       </a>
     </div>

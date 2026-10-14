@@ -65,6 +65,31 @@ All UUIDs and command codes are constants at the top of
 Each characteristic is optional — the app connects even if the sensor only
 implements part of the protocol.
 
+#### Short list first, "See more devices" on demand
+
+The first click opens a **short, filtered chooser** (`filters: [{ services:
+[BT_SERVICE_UUID] }]` + optional name prefix) so the window isn't cluttered.
+If the sensor isn't in that list, the app shows an error popover with a
+**"See more devices"** button that re-opens the chooser with
+**`acceptAllDevices: true`** — every nearby BLE device — so devices that don't
+advertise the service UUID still appear. `BT_SERVICE_UUID` stays in
+`optionalServices` in both cases so the app can reach the GATT service after
+connecting (the two `requestDevice` options are mutually exclusive per the Web
+Bluetooth spec).
+
+> **Why two steps?** Filtering by service UUID only lists devices that actually
+> advertise that UUID in their advertisement packet. Many sensors (and most
+> consumer gadgets) don't, which left the native window stuck on
+> *"Scanning…"* and then *"No compatible devices found"*. The "See more"
+> fallback avoids that dead end; the trade-off is the occasional
+> *"Unknown or Unsupported Device"* entry in the full list.
+
+- Make sure the sensor is **powered on** and **advertising** when you open the
+  chooser; otherwise it won't be listed.
+- If you prefer the short, filtered list again, switch back to
+  `filters: [{ services: [BT_SERVICE_UUID] }]` **and** make sure your firmware
+  advertises that UUID (or a matching name prefix).
+
 > **Note:** Web Bluetooth is **BLE/GATT only** (see
 > [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API)).
 > It works with custom BLE devices (Arduino / ESP32 / nRF52 sensors), **not**

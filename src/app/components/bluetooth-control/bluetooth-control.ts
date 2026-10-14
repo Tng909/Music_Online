@@ -12,6 +12,8 @@ export class BluetoothControl {
   status = this.bt.status;
   supported = this.bt.supported;
   deviceName = this.bt.deviceName;
+  error = this.bt.error;
+  canBroaden = this.bt.canBroaden;
 
   label = computed(() => {
     const name = this.deviceName();
@@ -59,5 +61,14 @@ export class BluetoothControl {
     } else {
       void this.bt.connect();
     }
+  }
+
+  /** Re-open the chooser listing every nearby device ("See more"). */
+  seeMoreDevices(): void {
+    void this.bt.connect({ acceptAll: true });
+  }
+
+  dismissError(): void {
+    this.bt.dismissError();
   }
 }

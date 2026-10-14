@@ -4,9 +4,12 @@
 import '@angular/compiler'; // JIT compiler for raw vitest runs
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { BluetoothService } from './bluetooth.service';
+import { BluetoothService, BT_SERVICE_UUID } from './bluetooth.service';
 import { PlayerService } from './player.service';
 import { TRACKS } from '../data/music-data';
+import { ensureTestEnvironment } from '../../testing/setup';
+
+await ensureTestEnvironment();
 
 // ---------------------------------------------------------------------------
 // Minimal Web Bluetooth fakes — enough for the service's full connect flow.
@@ -79,8 +82,12 @@ function installFakeBluetooth() {
   };
 
   const bluetooth = {
-    async requestDevice() { return device; },
+    async requestDevice(options: unknown) {
+      requestOptions = options;
+      return device;
+    },
   };
+  let requestOptions: unknown = null;
 
   Object.defineProperty(navigator, 'bluetooth', {
     value: bluetooth,
@@ -93,6 +100,7 @@ function installFakeBluetooth() {
     stateChar,
     trackChar,
     deviceListeners,
+    getRequestOptions: () => requestOptions,
     fireDisconnect() {
       for (const fn of deviceListeners['gattserverdisconnected'] ?? []) fn();
     },
@@ -243,5 +251,64 @@ describe('BluetoothService', () => {
     await bt.connect();
     expect(bt.status()).toBe('error');
     expect(bt.error()).toBe('User cancelled');
+  });
+
+  it('uses a short filtered list by default, full list on "See more"', async () => {
+    const bt = TestBed.inject(BluetoothService);
+
+    // First click: short filtered list.
+    await bt.connect();
+    const shortOpts = fake!.getRequestOptions() as {
+      filters?: Array<{ services?: string[]; namePrefix?: string }>;
+      acceptAllDevices?: boolean;
+      optionalServices?: string[];
+    };
+    expect(shortOpts.filters).toHaveLength(1);
+    expect(shortOpts.filters![0].services).toContain(BT_SERVICE_UUID);
+    expect(shortOpts.acceptAllDevices).toBeUndefined();
+    expect(shortOpts.optionalServices).toContain(BT_SERVICE_UUID);
+    expect(bt.canBroaden()).toBe(false);
+
+    // "See more devices": full list of every nearby BLE device.
+    await bt.connect({ acceptAll: true });
+    const fullOpts = fake!.getRequestOptions() as {
+      filters?: unknown;
+      acceptAllDevices?: boolean;
+      optionalServices?: string[];
+    };
+    expect(fullOpts.acceptAllDevices).toBe(true);
+    expect(fullOpts.filters).toBeUndefined();
+    expect(fullOpts.optionalServices).toContain(BT_SERVICE_UUID);
+  });
+
+  it('offers "See more devices" when the short list has no device', async () => {
+    Object.defineProperty(navigator, 'bluetooth', {
+      value: {
+        async requestDevice(): Promise<never> {
+          throw new DOMException('no devices', 'NotFoundError');
+        },
+      },
+      configurable: true,
+      writable: true,
+    });
+    const bt = TestBed.inject(BluetoothService);
+
+    // Filtered attempt fails -> fallback offered; broaden flag set.
+    await bt.connect();
+    expect(bt.status()).toBe('error');
+    expect(bt.error()).toContain('See more devices');
+    expect(bt.canBroaden()).toBe(true);
+
+    // Accept-all attempt fails -> keep the fallback visible so the user can
+    // retry either list; the message just stops suggesting a further step.
+    await bt.connect({ acceptAll: true });
+    expect(bt.status()).toBe('error');
+    expect(bt.error()).toContain('No device was selected');
+    expect(bt.canBroaden()).toBe(true);
+
+    bt.dismissError();
+    expect(bt.status()).toBe('idle');
+    expect(bt.error()).toBeNull();
+    expect(bt.canBroaden()).toBe(false);
   });
 });

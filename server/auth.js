@@ -11,12 +11,9 @@ const express = require('express');
 
 const USERS_PATH = path.join(__dirname, 'data', 'users.json');
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
-const CODE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 /** token -> { userId, expires } — memory only, cleared on server restart */
 const sessions = new Map();
-/** phone -> { code, expires } — pending SMS codes (demo: returned to client) */
-const phoneCodes = new Map();
 
 function readUsers() {
   if (!fs.existsSync(USERS_PATH)) writeUsers({ users: [] });
@@ -128,69 +125,6 @@ function createAuthRouter() {
     const user = isEmail(email) ? findAccount(db, 'email', email) : null;
     if (!user || !verifyPassword(typeof password === 'string' ? password : '', user.passwordHash)) {
       return res.status(401).json({ error: 'Invalid email or password.' });
-    }
-    res.json({ token: createSession(user.id), user: publicUser(user) });
-  });
-
-  // ---- Google / Apple / Facebook (demo OAuth: find-or-create by email) ----
-  router.post('/social', (req, res) => {
-    const { provider, email } = req.body || {};
-    if (!['google', 'apple', 'facebook'].includes(provider)) {
-      return res.status(400).json({ error: 'Unknown provider.' });
-    }
-    if (!isEmail(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
-    const db = readUsers();
-    let user = findAccount(db, provider, email);
-    if (!user) {
-      user = {
-        id: newUserId(),
-        email: email.trim().toLowerCase(),
-        name: nameFromEmail(email),
-        provider,
-        passwordHash: null,
-        phone: null,
-        createdAt: new Date().toISOString(),
-      };
-      db.users.push(user);
-      writeUsers(db);
-    }
-    res.json({ token: createSession(user.id), user: publicUser(user) });
-  });
-
-  // ---- Phone number (demo SMS: code returned in the response) ----
-  router.post('/phone/start', (req, res) => {
-    const phone = String((req.body || {}).phone || '').trim();
-    if (!/^\+?[0-9 ()\-]{7,20}$/.test(phone)) {
-      return res.status(400).json({ error: 'Enter a valid phone number.' });
-    }
-    const code = String(crypto.randomInt(100000, 1000000));
-    phoneCodes.set(phone, { code, expires: Date.now() + CODE_TTL_MS });
-    // Demo: a real server would SMS this instead of returning it.
-    res.json({ ok: true, code });
-  });
-
-  router.post('/phone/verify', (req, res) => {
-    const { phone, code } = req.body || {};
-    const entry = phoneCodes.get(String(phone ?? '').trim());
-    if (!entry || entry.expires < Date.now() || entry.code !== String(code ?? '')) {
-      phoneCodes.delete(String(phone ?? '').trim());
-      return res.status(401).json({ error: 'That code is incorrect or expired.' });
-    }
-    phoneCodes.delete(String(phone ?? '').trim());
-    const db = readUsers();
-    let user = findAccount(db, 'phone', phone);
-    if (!user) {
-      user = {
-        id: newUserId(),
-        email: null,
-        name: String(phone).trim(),
-        provider: 'phone',
-        passwordHash: null,
-        phone: String(phone).trim(),
-        createdAt: new Date().toISOString(),
-      };
-      db.users.push(user);
-      writeUsers(db);
     }
     res.json({ token: createSession(user.id), user: publicUser(user) });
   });

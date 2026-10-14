@@ -32,10 +32,6 @@ describe('Sign up page', () => {
     expect(el.textContent).toContain('Email address');
     expect(el.querySelector('input[type="email"]')).toBeTruthy();
     expect(el.querySelector('button[type="submit"]')?.textContent?.trim()).toBe('Next');
-    expect(el.textContent).toContain('or');
-    expect(el.textContent).toContain('Sign up with phone number');
-    expect(el.textContent).toContain('Sign up with Google');
-    expect(el.textContent).toContain('Sign up with Apple');
     expect(el.textContent).toContain('Already have an account?');
     expect(el.querySelector('a[href="/login"]')?.textContent).toContain('Log in');
   });
@@ -61,11 +57,6 @@ describe('Log in page', () => {
     expect(el.textContent).toContain('Email');
     expect(el.querySelector('input[type="email"]')).toBeTruthy();
     expect(el.querySelector('button[type="submit"]')?.textContent?.trim()).toBe('Continue');
-    expect(el.textContent).toContain('or');
-    expect(el.textContent).toContain('Continue with phone number');
-    expect(el.textContent).toContain('Continue with Google');
-    expect(el.textContent).toContain('Continue with Facebook');
-    expect(el.textContent).toContain('Continue with Apple');
     expect(el.textContent).toContain("Don't have an account?");
     expect(el.querySelector('a[href="/signup"]')?.textContent).toContain('Sign up');
   });

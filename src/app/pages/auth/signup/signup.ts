@@ -2,11 +2,10 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
-import { AuthOptions } from '../../../components/auth-options/auth-options';
 
 @Component({
   selector: 'app-signup',
-  imports: [FormsModule, RouterLink, AuthOptions],
+  imports: [FormsModule, RouterLink],
   templateUrl: './signup.html',
 })
 export class Signup {

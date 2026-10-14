@@ -1,0 +1,59 @@
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  <input [ngModel]="state.query()" (ngModelChange)="state.query.set($event); state.resetPage()"
+    placeholder="Search name or email…"
+    class="flex-1 min-w-[180px] rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+  <select [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($any($event)); state.resetPage()"
+    class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none">
+    <option value="all">All roles</option>
+    <option value="user">User</option>
+    <option value="artist">Artist</option>
+    <option value="admin">Admin</option>
+  </select>
+  <button type="button" (click)="reload()"
+    class="rounded-full bg-white/10 hover:bg-white/20 text-sm font-bold px-4 py-2 transition">Refresh</button>
+</div>
+
+@if (error()) {
+  <p class="rounded-md bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-[#f37c7c] mb-3">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p class="text-sm text-[#b3b3b3] py-8 text-center">Loading accounts…</p>
+} @else {
+  <div class="rounded-lg bg-[#181818] overflow-hidden">
+    <div class="hidden sm:grid grid-cols-[44px_1fr_200px_90px_110px_110px] gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-[#a7a7a7]">
+      <span>No</span><span>Name</span><span>Email</span><span>Role</span><span>Joined</span><span class="text-right">Options</span>
+    </div>
+    @for (u of rows(); track u.id; let i = $index) {
+      <div class="grid grid-cols-[32px_1fr_auto] sm:grid-cols-[44px_1fr_200px_90px_110px_110px] gap-2 items-center px-4 py-2.5 border-t border-white/5 hover:bg-white/5">
+        <span class="text-sm text-[#a7a7a7] tabular-nums">{{ (state.page() - 1) * state.pageSize + i + 1 }}</span>
+        <p class="text-sm font-bold truncate">{{ u.name }}</p>
+        <span class="text-xs text-[#b3b3b3] truncate hidden sm:block">{{ u.email ?? '—' }}</span>
+        <select [ngModel]="roleOf(u)" (ngModelChange)="setRole(u, $any($event))"
+          class="rounded bg-white/10 text-xs font-bold px-2 py-1.5 outline-none hidden sm:block">
+          @for (r of roles; track r) {
+            <option [value]="r">{{ r }}</option>
+          }
+        </select>
+        <span class="text-xs text-[#b3b3b3] hidden sm:block">{{ joinedOf(u) }}</span>
+        <span class="flex justify-end gap-2">
+          <button type="button" (click)="remove(u)" class="text-xs font-bold text-[#f37c7c] hover:text-red-400">Delete</button>
+        </span>
+      </div>
+    } @empty {
+      <p class="px-4 py-8 text-center text-sm text-[#b3b3b3]">No accounts match.</p>
+    }
+  </div>
+
+  <div class="flex items-center justify-center gap-3 mt-4 text-sm">
+    <button type="button" (click)="state.page.set(state.page() - 1); state.clamp(filtered().length)" [disabled]="state.page() <= 1"
+      class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Previous page">‹</button>
+    <span class="flex items-center gap-1 text-[#b3b3b3]">
+      <input [ngModel]="state.page()" (ngModelChange)="state.goTo($event, filtered().length)"
+        class="w-12 rounded bg-white/10 text-center text-white tabular-nums px-1 py-0.5 outline-none focus:ring-1 focus:ring-white" aria-label="Current page" />
+      <span>/ {{ state.pages(filtered().length) }}</span>
+    </span>
+    <button type="button" (click)="state.page.set(state.page() + 1); state.clamp(filtered().length)" [disabled]="state.page() >= state.pages(filtered().length)"
+      class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Next page">›</button>
+  </div>
+}

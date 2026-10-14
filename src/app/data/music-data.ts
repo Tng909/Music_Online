@@ -12,6 +12,7 @@ export interface Track {
   coverUrl?: string | null;
   /** Path under public/, e.g. "/audio/blinding-lights.mp3" — null = simulated playback */
   audioUrl?: string | null;
+  createdAt?: string;
 }
 
 export interface Playlist {
@@ -23,6 +24,9 @@ export interface Playlist {
   likes: string;
   tracks: Track[];
   coverUrl?: string | null;
+  /** Song ids (backend shape); resolved to `tracks` by the API. */
+  trackIds?: string[];
+  createdAt?: string;
 }
 
 export interface Artist {
@@ -32,6 +36,11 @@ export interface Artist {
   gradient: string;
   emoji: string;
   coverUrl?: string | null;
+  /** Song ids linked to this artist (admin-managed). */
+  songIds?: string[];
+  /** Linked user account id when the artist is also a user. */
+  userId?: string | null;
+  createdAt?: string;
 }
 
 

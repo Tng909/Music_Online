@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const { appendHistory } = require('./history');
 
 const USERS_PATH = path.join(__dirname, 'data', 'users.json');
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -85,6 +86,17 @@ function requireAuth(req, res, next) {
   next();
 }
 
+function requireAdmin(req, res, next) {
+  const found = userFromRequest(req);
+  if (!found || !found.user) return res.status(401).json({ error: 'Please log in first.' });
+  if ((found.user.role || 'user') !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required.' });
+  }
+  req.user = found.user;
+  req.authToken = found.token;
+  next();
+}
+
 function findAccount(db, provider, key) {
   const normalized = String(key).toLowerCase();
   return db.users.find((u) => u.provider === provider && String(u.email ?? u.phone ?? '').toLowerCase() === normalized);
@@ -118,6 +130,7 @@ function createAuthRouter() {
     };
     db.users.push(user);
     writeUsers(db);
+    appendHistory({ actor: user.email, action: 'user.signup', entity: user.id, detail: `${user.name} joined` });
     res.status(201).json({ token: createSession(user.id), user: publicUser(user) });
   });
 
@@ -143,4 +156,4 @@ function createAuthRouter() {
   return router;
 }
 
-module.exports = { readUsers, writeUsers, publicUser, createAuthRouter };
+module.exports = { readUsers, writeUsers, publicUser, createAuthRouter, requireAuth, requireAdmin };

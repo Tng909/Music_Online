@@ -1,0 +1,52 @@
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  <input [ngModel]="query()" (ngModelChange)="query.set($event); onFilter()"
+    placeholder="Search actor, action, detail…"
+    class="flex-1 min-w-[180px] rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+  <select [ngModel]="action()" (ngModelChange)="action.set($any($event)); onFilter()"
+    class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none">
+    <option value="">All actions</option>
+    @for (a of actions; track a) {
+      <option [value]="a">{{ a }}</option>
+    }
+  </select>
+  <input type="date" [ngModel]="from()" (ngModelChange)="from.set($event); onFilter()"
+    class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none" aria-label="From date" />
+  <input type="date" [ngModel]="to()" (ngModelChange)="to.set($event); onFilter()"
+    class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none" aria-label="To date" />
+</div>
+
+@if (error()) {
+  <p class="rounded-md bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-[#f37c7c] mb-3">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p class="text-sm text-[#b3b3b3] py-8 text-center">Loading history…</p>
+} @else {
+  <div class="rounded-lg bg-[#181818] overflow-hidden">
+    <div class="hidden sm:grid grid-cols-[150px_140px_1fr_150px] gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-[#a7a7a7]">
+      <span>Time</span><span>Actor</span><span>Change</span><span>Action</span>
+    </div>
+    @for (h of items(); track h.id) {
+      <div class="grid grid-cols-[1fr_auto] sm:grid-cols-[150px_140px_1fr_150px] gap-2 items-center px-4 py-2.5 border-t border-white/5 hover:bg-white/5">
+        <span class="text-xs text-[#a7a7a7]">{{ timeOf(h) }}</span>
+        <span class="text-xs text-[#b3b3b3] truncate hidden sm:block">{{ h.actor }}</span>
+        <p class="text-sm truncate col-span-2 sm:col-span-1">{{ h.detail }}</p>
+        <span class="text-xs font-mono text-[#1ed760] truncate text-right sm:text-left">{{ h.action }}</span>
+      </div>
+    } @empty {
+      <p class="px-4 py-8 text-center text-sm text-[#b3b3b3]">No changes recorded yet.</p>
+    }
+  </div>
+
+  <div class="flex items-center justify-center gap-3 mt-4 text-sm">
+    <button type="button" (click)="prev()" [disabled]="page() <= 1"
+      class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Previous page">‹</button>
+    <span class="flex items-center gap-1 text-[#b3b3b3]">
+      <input [ngModel]="page()" (ngModelChange)="goTo($event)"
+        class="w-12 rounded bg-white/10 text-center text-white tabular-nums px-1 py-0.5 outline-none focus:ring-1 focus:ring-white" aria-label="Current page" />
+      <span>/ {{ pages() }} · {{ total() }} total</span>
+    </span>
+    <button type="button" (click)="next()" [disabled]="page() >= pages()"
+      class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Next page">›</button>
+  </div>
+}

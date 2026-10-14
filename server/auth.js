@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const { appendHistory } = require('./history');
 
 const USERS_PATH = path.join(__dirname, 'data', 'users.json');
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -85,6 +86,17 @@ function requireAuth(req, res, next) {
   next();
 }
 
+function requireAdmin(req, res, next) {
+  const found = userFromRequest(req);
+  if (!found || !found.user) return res.status(401).json({ error: 'Please log in first.' });
+  if ((found.user.role || 'user') !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required.' });
+  }
+  req.user = found.user;
+  req.authToken = found.token;
+  next();
+}
+
 function findAccount(db, provider, key) {
   const normalized = String(key).toLowerCase();
   return db.users.find((u) => u.provider === provider && String(u.email ?? u.phone ?? '').toLowerCase() === normalized);
@@ -95,7 +107,10 @@ function createAuthRouter() {
 
   // ---- Sign up with email + password ----
   router.post('/signup', (req, res) => {
-    const { email, password } = req.body || {};
+    const { name, email, password } = req.body || {};
+    if (typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Enter your name.' });
+    }
     if (!isEmail(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
     if (typeof password !== 'string' || password.length < 8) {
       return res.status(400).json({ error: 'Password must be at least 8 characters.' });
@@ -107,7 +122,7 @@ function createAuthRouter() {
     const user = {
       id: newUserId(),
       email: email.trim().toLowerCase(),
-      name: nameFromEmail(email),
+      name: name.trim().slice(0, 60) || nameFromEmail(email),
       provider: 'email',
       passwordHash: hashPassword(password),
       phone: null,
@@ -115,6 +130,7 @@ function createAuthRouter() {
     };
     db.users.push(user);
     writeUsers(db);
+    appendHistory({ actor: user.email, action: 'user.signup', entity: user.id, detail: `${user.name} joined` });
     res.status(201).json({ token: createSession(user.id), user: publicUser(user) });
   });
 
@@ -140,4 +156,4 @@ function createAuthRouter() {
   return router;
 }
 
-module.exports = { readUsers, writeUsers, publicUser, createAuthRouter };
+module.exports = { readUsers, writeUsers, publicUser, createAuthRouter, requireAuth, requireAdmin };

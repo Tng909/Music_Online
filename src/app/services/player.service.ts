@@ -19,6 +19,24 @@ function loadLikedIds(fallback: string[]): Set<string> {
 
 @Injectable({ providedIn: 'root' })
 export class PlayerService {
+  private stats: { reportPlay(id: string): void; heartbeat(id: string): void } | null | undefined;
+  private resolveStats(): { reportPlay(id: string): void; heartbeat(id: string): void } | null {
+    if (this.stats === undefined) {
+      this.stats = null; // default: no reporting (tests, backend down)
+      // Lazy-load so raw vitest never pulls HttpClient into the spec graph.
+      void import('./stats.service')
+        .then(async (m) => {
+          const { inject } = await import('@angular/core');
+          try {
+            this.stats = inject(m.StatsService, { optional: true }) ?? null;
+          } catch {
+            this.stats = null;
+          }
+        })
+        .catch(() => undefined);
+    }
+    return this.stats;
+  }
   readonly currentTrack = signal<Track | null>(null);
   readonly isPlaying = signal(false);
   readonly progress = signal(0); // seconds into current track
@@ -74,6 +92,10 @@ export class PlayerService {
       clearInterval(this.timer);
       this.timer = null;
     }
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
     if (this.audio) this.audio.pause();
   }
 
@@ -101,6 +123,21 @@ export class PlayerService {
     }
     this.applyAudioState();
     this.syncMediaSession();
+    this.reportPlay(track.id);
+  }
+
+  /** Accurate play event + heartbeat (drives admin dashboard + live count). */
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+
+  private reportPlay(trackId: string): void {
+    this.resolveStats()?.reportPlay(trackId);
+    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = setInterval(() => {
+      if (!this.isPlaying()) return;
+      const cur = this.currentTrack();
+      if (!cur) return;
+      this.resolveStats()?.heartbeat(cur.id);
+    }, 15000);
   }
 
   toggle(): void {

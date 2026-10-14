@@ -11,7 +11,8 @@ const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
-const { createAuthRouter } = require('./auth');
+const { createAuthRouter, requireAuth } = require('./auth');
+const { createAdminRouter } = require('./admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,6 +42,9 @@ function withTracks(db, playlist) {
 
 // ---- Auth: user accounts (server/data/users.json) ----
 app.use('/api/auth', createAuthRouter());
+
+// ---- Admin: CRUD + uploads + stats + history (admin-only writes) ----
+app.use('/api/admin', createAdminRouter());
 
 // ---- Songs (read-only) ----
 app.get('/api/songs', (_req, res) => {
@@ -82,9 +86,14 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`MusicOnline API  → http://localhost:${PORT}/api`);
-  console.log(`Database file    → ${DB_PATH}`);
-  console.log(`Covers           → http://localhost:${PORT}/covers/<file>`);
-  console.log(`Audio            → http://localhost:${PORT}/audio/<file>`);
-});
+// `requireAuth` is re-exported for route modules that need it.
+module.exports = { requireAuth };
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`MusicOnline API  → http://localhost:${PORT}/api`);
+    console.log(`Database file    → ${DB_PATH}`);
+    console.log(`Covers           → http://localhost:${PORT}/covers/<file>`);
+    console.log(`Audio            → http://localhost:${PORT}/audio/<file>`);
+  });
+}

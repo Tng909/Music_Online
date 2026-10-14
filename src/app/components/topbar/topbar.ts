@@ -64,6 +64,11 @@ export class Topbar {
     void this.router.navigate(['/account']);
   }
 
+  goToAdmin(): void {
+    this.menuOpen.set(false);
+    void this.router.navigate(['/admin']);
+  }
+
   async logout(): Promise<void> {
     this.menuOpen.set(false);
     await this.auth.logout();

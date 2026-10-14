@@ -29,9 +29,13 @@ describe('Sign up page', () => {
     const el = fixture.nativeElement as HTMLElement;
 
     expect(el.querySelector('h1')?.textContent).toContain('Sign up to start listening');
+    expect(el.textContent).toContain('Name');
+    expect(el.querySelector('input[name="name"]')).toBeTruthy();
     expect(el.textContent).toContain('Email address');
     expect(el.querySelector('input[type="email"]')).toBeTruthy();
-    expect(el.querySelector('button[type="submit"]')?.textContent?.trim()).toBe('Next');
+    expect(el.textContent).toContain('Password');
+    expect(el.querySelector('input[type="password"]')).toBeTruthy();
+    expect(el.querySelector('button[type="submit"]')?.textContent?.trim()).toBe('Create account');
     expect(el.textContent).toContain('Already have an account?');
     expect(el.querySelector('a[href="/login"]')?.textContent).toContain('Log in');
   });

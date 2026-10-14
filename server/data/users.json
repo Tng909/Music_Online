@@ -26,6 +26,16 @@
       "passwordHash": "fd5dca12227ed2ec22b140308af5269d:303072c83ebcd36cef10ecff87613b66f001730deb786e251d1f73cc26d94868bd6567b5fb6c7a91a29c8dea29e1485238acabde610700421665fd0a5f783130",
       "phone": null,
       "createdAt": "2026-10-12T08:55:16.611Z"
+    },
+    {
+      "id": "u_admin000001",
+      "email": "admin@ad.com",
+      "name": "Admin",
+      "provider": "email",
+      "role": "admin",
+      "passwordHash": "28d09719ff2b8ba178323177339f6146:4a7171b0e56bd2d82dcd340d9fd672793fef2088f005a88da8a94d5e3d74fa92a7d241a957bd0f8cb111d323f20dbaa351fd43ab70b8c5fc2f0297c3923f476c",
+      "phone": null,
+      "createdAt": "2026-10-14T00:58:00.000Z"
     }
   ]
 }

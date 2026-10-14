@@ -1,0 +1,35 @@
+@if (error()) {
+  <p class="rounded-md bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-[#f37c7c] mb-4">{{ error() }}</p>
+}
+
+<div class="flex items-center gap-2 mb-5">
+  <span class="text-sm text-[#b3b3b3] font-bold">Plays per</span>
+  @for (r of ['day', 'week', 'month', 'year']; track r) {
+    <button type="button" (click)="setRange($any(r))"
+      [class]="range() === r ? 'bg-white text-black' : 'bg-white/10 text-white hover:bg-white/20'"
+      class="rounded-full px-4 py-1.5 text-xs font-bold transition">{{ r }}</button>
+  }
+</div>
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="rounded-lg bg-[#181818] p-5">
+    <p class="text-xs font-bold uppercase tracking-widest text-[#a7a7a7]">Songs played</p>
+    <p class="text-3xl font-black mt-2">{{ stats()?.plays ?? '—' }}</p>
+    <p class="text-xs text-[#b3b3b3] mt-1">last {{ range() }} · total</p>
+  </div>
+  <div class="rounded-lg bg-[#181818] p-5 ring-1 ring-[#1ed760]/40">
+    <p class="text-xs font-bold uppercase tracking-widest text-[#a7a7a7]">Listening now</p>
+    <p class="text-3xl font-black mt-2 text-[#1ed760]">{{ live() ?? '—' }}</p>
+    <p class="text-xs text-[#b3b3b3] mt-1">live · updates every 5s</p>
+  </div>
+  <div class="rounded-lg bg-[#181818] p-5">
+    <p class="text-xs font-bold uppercase tracking-widest text-[#a7a7a7]">Accounts</p>
+    <p class="text-3xl font-black mt-2">{{ stats()?.accounts ?? '—' }}</p>
+    <p class="text-xs text-[#b3b3b3] mt-1">{{ stats()?.artists ?? '—' }} artists</p>
+  </div>
+  <div class="rounded-lg bg-[#181818] p-5">
+    <p class="text-xs font-bold uppercase tracking-widest text-[#a7a7a7]">Playlists</p>
+    <p class="text-3xl font-black mt-2">{{ stats()?.playlists ?? '—' }}</p>
+    <p class="text-xs text-[#b3b3b3] mt-1">{{ stats()?.songs ?? '—' }} songs</p>
+  </div>
+</div>

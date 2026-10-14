@@ -8,59 +8,53 @@
 
   <div class="w-full max-w-[465px]">
     <h1 class="text-4xl sm:text-5xl font-black tracking-tight leading-[1.1] text-center text-balance mb-8">
-      @if (step() === 'email') {
-        Sign up to start listening
-      } @else {
-        Create a password
-      }
+      Sign up to start listening
     </h1>
 
-    <form (ngSubmit)="step() === 'email' ? next() : submit()" class="flex flex-col gap-4">
-      @if (step() === 'email') {
-        <label for="signup-email" class="text-sm font-bold">Email address</label>
-        <input
-          id="signup-email"
-          name="email"
-          type="email"
-          required
-          [ngModel]="email()"
-          (ngModelChange)="email.set($event)"
-          placeholder="name@domain.com"
-          class="h-12 rounded-[4px] border border-[#727272] bg-black px-4 text-base text-white placeholder:text-[#a7a7a7] outline-none focus:border-white"
-        />
-        <button type="submit"
-          class="h-12 rounded-full bg-[#1ed760] hover:bg-[#1fdf64] hover:scale-[1.02] transition text-black text-base font-bold">
-          Next
-        </button>
-      } @else {
-        <label for="signup-password" class="text-sm font-bold">Password</label>
-        <input
-          id="signup-password"
-          name="password"
-          type="password"
-          required
-          minlength="8"
-          [ngModel]="password()"
-          (ngModelChange)="password.set($event)"
-          placeholder="8 or more characters"
-          class="h-12 rounded-[4px] border border-[#727272] bg-black px-4 text-base text-white placeholder:text-[#a7a7a7] outline-none focus:border-white"
-        />
-        <p class="text-xs text-[#b3b3b3] -mt-2">Use at least 8 characters.</p>
-        <button type="submit" [disabled]="auth.busy()"
-          class="h-12 rounded-full bg-[#1ed760] hover:bg-[#1fdf64] hover:scale-[1.02] transition text-black text-base font-bold disabled:opacity-60 disabled:hover:scale-100">
-          {{ auth.busy() ? 'Creating account…' : 'Create account' }}
-        </button>
-      }
+    <form (ngSubmit)="submit()" class="flex flex-col gap-4">
+      <label for="signup-name" class="text-sm font-bold">Name</label>
+      <input
+        id="signup-name"
+        name="name"
+        type="text"
+        required
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        placeholder="Your name"
+        class="h-12 rounded-[4px] border border-[#727272] bg-black px-4 text-base text-white placeholder:text-[#a7a7a7] outline-none focus:border-white"
+      />
+      <label for="signup-email" class="text-sm font-bold">Email address</label>
+      <input
+        id="signup-email"
+        name="email"
+        type="email"
+        required
+        [ngModel]="email()"
+        (ngModelChange)="email.set($event)"
+        placeholder="name@domain.com"
+        class="h-12 rounded-[4px] border border-[#727272] bg-black px-4 text-base text-white placeholder:text-[#a7a7a7] outline-none focus:border-white"
+      />
+      <label for="signup-password" class="text-sm font-bold">Password</label>
+      <input
+        id="signup-password"
+        name="password"
+        type="password"
+        required
+        minlength="8"
+        [ngModel]="password()"
+        (ngModelChange)="password.set($event)"
+        placeholder="8 or more characters"
+        class="h-12 rounded-[4px] border border-[#727272] bg-black px-4 text-base text-white placeholder:text-[#a7a7a7] outline-none focus:border-white"
+      />
+      <p class="text-xs text-[#b3b3b3] -mt-2">Use at least 8 characters.</p>
       @if (error()) {
         <p class="text-sm text-[#f37c7c]">{{ error() }}</p>
       }
+      <button type="submit" [disabled]="auth.busy()"
+        class="h-12 rounded-full bg-[#1ed760] hover:bg-[#1fdf64] hover:scale-[1.02] transition text-black text-base font-bold disabled:opacity-60 disabled:hover:scale-100">
+        {{ auth.busy() ? 'Creating account…' : 'Create account' }}
+      </button>
     </form>
-
-    @if (step() === 'password') {
-      <p class="text-center mt-4">
-        <button type="button" (click)="back()" class="text-sm font-bold text-[#b3b3b3] hover:text-white transition">← Back</button>
-      </p>
-    }
 
     <div class="text-center mt-12 mb-6">
       <p class="text-[#b3b3b3] text-base">Already have an account?</p>

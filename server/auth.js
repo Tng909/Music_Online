@@ -95,7 +95,10 @@ function createAuthRouter() {
 
   // ---- Sign up with email + password ----
   router.post('/signup', (req, res) => {
-    const { email, password } = req.body || {};
+    const { name, email, password } = req.body || {};
+    if (typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Enter your name.' });
+    }
     if (!isEmail(email)) return res.status(400).json({ error: 'Enter a valid email address.' });
     if (typeof password !== 'string' || password.length < 8) {
       return res.status(400).json({ error: 'Password must be at least 8 characters.' });
@@ -107,7 +110,7 @@ function createAuthRouter() {
     const user = {
       id: newUserId(),
       email: email.trim().toLowerCase(),
-      name: nameFromEmail(email),
+      name: name.trim().slice(0, 60) || nameFromEmail(email),
       provider: 'email',
       passwordHash: hashPassword(password),
       phone: null,

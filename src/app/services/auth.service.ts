@@ -9,6 +9,7 @@ export interface AuthUser {
   email: string | null;
   name: string;
   provider: 'email';
+  role?: 'admin' | 'user';
   phone?: string | null;
   createdAt: string;
 }
@@ -43,8 +44,8 @@ export class AuthService {
     this.error.set(null);
   }
 
-  signup(email: string, password: string): Promise<boolean> {
-    return this.send('/signup', { email, password });
+  signup(name: string, email: string, password: string): Promise<boolean> {
+    return this.send('/signup', { name, email, password });
   }
 
   login(email: string, password: string): Promise<boolean> {

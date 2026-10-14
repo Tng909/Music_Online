@@ -8,12 +8,10 @@ export interface AuthUser {
   id: string;
   email: string | null;
   name: string;
-  provider: 'email' | 'google' | 'apple' | 'facebook' | 'phone';
+  provider: 'email';
   phone?: string | null;
   createdAt: string;
 }
-
-export type SocialProvider = 'google' | 'apple' | 'facebook';
 
 interface AuthResponse {
   token: string;
@@ -51,31 +49,6 @@ export class AuthService {
 
   login(email: string, password: string): Promise<boolean> {
     return this.send('/login', { email, password });
-  }
-
-  social(provider: SocialProvider, email: string): Promise<boolean> {
-    return this.send('/social', { provider, email });
-  }
-
-  /** Demo "SMS": the server returns the code so the UI can show it. */
-  async startPhoneLogin(phone: string): Promise<string | null> {
-    this.busy.set(true);
-    this.error.set(null);
-    try {
-      const res = await firstValueFrom(
-        this.http.post<{ ok: true; code: string }>(`${API_URL}/auth/phone/start`, { phone }),
-      );
-      return res.code;
-    } catch (e) {
-      this.error.set(this.messageOf(e));
-      return null;
-    } finally {
-      this.busy.set(false);
-    }
-  }
-
-  verifyPhone(phone: string, code: string): Promise<boolean> {
-    return this.send('/phone/verify', { phone, code });
   }
 
   async logout(): Promise<void> {

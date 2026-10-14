@@ -5,10 +5,6 @@ import { AuthService, AuthUser } from '../../services/auth.service';
 /** Human-readable label for how the account was created. */
 const PROVIDER_LABELS: Record<AuthUser['provider'], string> = {
   email: 'Email & password',
-  google: 'Google',
-  apple: 'Apple',
-  facebook: 'Facebook',
-  phone: 'Phone number',
 };
 
 @Component({

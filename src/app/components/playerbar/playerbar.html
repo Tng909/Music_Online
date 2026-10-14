@@ -38,31 +38,44 @@
         <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M10.59 9.17 5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
         @if (isShuffled()) { <span class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#1ed760]"></span> }
       </button>
-      <button (click)="player.prev()" title="Previous" class="text-[#b3b3b3] hover:text-white transition">
-        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><path d="M6 4h2v16H6V4zm3.14 8 8.43-5.49v10.98L9.14 12z"/></svg>
+      <button (click)="player.prev()" title="Previous" aria-label="Previous"
+        [disabled]="!track()"
+        class="text-[#c4c4c4] hover:text-white active:text-white transition hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:text-[#c4c4c4] disabled:hover:scale-100">
+        <svg viewBox="0 0 24 24" class="w-[22px] h-[22px]" fill="currentColor"><path d="M5.5 4h2.2v16H5.5V4zm13.2 0v16L8.2 12l10.5-8z"/></svg>
       </button>
-      <button (click)="player.toggle()" title="Play / Pause"
-        class="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition">
+      <button (click)="player.toggle()" title="Play / Pause" aria-label="Play or pause"
+        [disabled]="!track()"
+        class="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition disabled:opacity-40 disabled:hover:scale-100">
         @if (isPlaying()) {
           <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
         } @else {
           <svg viewBox="0 0 24 24" class="w-5 h-5 translate-x-[1px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
         }
       </button>
-      <button (click)="player.next()" title="Next" class="text-[#b3b3b3] hover:text-white transition">
-        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><path d="M16 4h2v16h-2V4zM6.86 12l8.43 5.49V6.51L6.86 12z"/></svg>
+      <button (click)="player.next()" title="Next" aria-label="Next"
+        [disabled]="!track()"
+        class="text-[#c4c4c4] hover:text-white active:text-white transition hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:text-[#c4c4c4] disabled:hover:scale-100">
+        <svg viewBox="0 0 24 24" class="w-[22px] h-[22px]" fill="currentColor"><path d="M16.3 4h2.2v16h-2.2V4zM5.3 4v16l10.5-8L5.3 4z"/></svg>
       </button>
-      <button (click)="player.cycleRepeat()" [title]="'Repeat: ' + repeatMode()"
+      <button (click)="player.cycleRepeat()" [title]="repeatTitle()" aria-label="Cycle repeat mode"
         [class]="repeatMode() !== 'off' ? 'text-[#1ed760]' : 'text-[#b3b3b3] hover:text-white'"
         class="transition relative">
-        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M17 2H7a1 1 0 0 0 0 2h10v5.5a.5.5 0 0 0 .854.354l2-2a.5.5 0 0 0 0-.708l-2-2A.5.5 0 0 0 17 5.5V4zm-4 20H7a1 1 0 0 1-1-1V15.5a.5.5 0 0 1 .854-.354l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.854-.354V20h10a1 1 0 0 0 0-2z"/></svg>
+        @if (repeatMode() === 'one') {
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4zm-7.5-5h3v1.5H14v-4c0-.83-.67-1.5-1.5-1.5H9v1.5h3.5V12H9.5z"/></svg>
+          <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#1ed760] text-black text-[8px] font-extrabold flex items-center justify-center">1</span>
+        } @else {
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+        }
         @if (repeatMode() !== 'off') { <span class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#1ed760]"></span> }
       </button>
     </div>
-    <div class="w-full hidden sm:flex items-center gap-2 text-[11px] text-[#b3b3b3]">
+    <div class="w-full flex items-center gap-2 text-[11px] text-[#b3b3b3]">
       <span class="w-10 text-right tabular-nums">{{ elapsed() }}</span>
-      <input type="range" min="0" max="100" step="0.5" [value]="player.progressPercent()"
-        (input)="onSeek($event)" class="spot-range flex-1" [disabled]="!track()" />
+      <input type="range" min="0" max="100" step="0.5" [value]="sliderPercent()"
+        [style.background]="sliderFill()"
+        (pointerdown)="onSeekStart($event)" (input)="onSeeking($event)" (change)="onSeekEnd($event)"
+        class="spot-range spot-progress flex-1" [disabled]="!track()"
+        [attr.aria-label]="seekLabel()" [attr.aria-valuetext]="elapsed() + ' of ' + total()" />
       <span class="w-10 tabular-nums">{{ total() }}</span>
     </div>
   </div>

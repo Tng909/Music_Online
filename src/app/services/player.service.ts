@@ -28,6 +28,8 @@ export class PlayerService {
 
   constructor() {
     this.startTicker();
+    this.initMediaSession();
+    this.syncMediaSession();
   }
 
   playTrack(track: Track, context: Track[] = []): void {
@@ -42,12 +44,14 @@ export class PlayerService {
       if (a) a.src = track.audioUrl;
     }
     this.applyAudioState();
+    this.syncMediaSession();
   }
 
   toggle(): void {
     if (!this.currentTrack()) return;
     this.isPlaying.update((v) => !v);
     this.applyAudioState();
+    this.syncMediaSession();
   }
 
   next(): void {
@@ -184,6 +188,65 @@ export class PlayerService {
       }
     } else {
       a.pause();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Media Session — hardware media keys / Bluetooth earbuds (AVRCP), lock-screen
+  // and notification controls. The OS routes earbud button presses here, so
+  // play/pause/next/prev on earbuds like the Redmi Buds 6 Play drive the player
+  // without any GATT pairing. Degrades to a no-op where unsupported (tests/SSR).
+  // ---------------------------------------------------------------------------
+
+  private initMediaSession(): void {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+
+    ms.setActionHandler('play', () => {
+      if (!this.isPlaying()) this.toggle();
+    });
+    ms.setActionHandler('pause', () => {
+      if (this.isPlaying()) this.toggle();
+    });
+    ms.setActionHandler('stop', () => {
+      if (this.isPlaying()) this.toggle();
+    });
+    ms.setActionHandler('nexttrack', () => this.next());
+    ms.setActionHandler('previoustrack', () => this.prev());
+    ms.setActionHandler('seekbackward', (details) =>
+      this.seekTo(this.progress() - (details.seekOffset ?? 10))
+    );
+    ms.setActionHandler('seekforward', (details) =>
+      this.seekTo(this.progress() + (details.seekOffset ?? 10))
+    );
+    ms.setActionHandler('seekto', (details) => {
+      if (details.seekTime != null) this.seekTo(details.seekTime);
+    });
+  }
+
+  /** Push current track + playback state to the OS media controls. */
+  private syncMediaSession(): void {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    ms.playbackState = this.isPlaying() ? 'playing' : 'paused';
+
+    const track = this.currentTrack();
+    if (track && typeof MediaMetadata !== 'undefined') {
+      const artwork = track.coverUrl
+        ? [
+            {
+              src: new URL(track.coverUrl, window.location.href).href,
+              sizes: '512x512',
+              type: 'image/jpeg',
+            },
+          ]
+        : [];
+      ms.metadata = new MediaMetadata({
+        title: track.title,
+        artist: track.artist,
+        album: track.album,
+        artwork,
+      });
     }
   }
 }

@@ -90,3 +90,81 @@ describe('PlayerService', () => {
     expect(player.isMuted()).toBe(false);
   });
 });
+
+describe('PlayerService media session (earbuds / hardware keys)', () => {
+  const handlers: Record<string, (details?: Record<string, unknown>) => void> = {};
+  let metadata: { title: string; artist: string; album: string } | null = null;
+  let playbackState = '';
+
+  beforeEach(() => {
+    for (const k of Object.keys(handlers)) delete handlers[k];
+    metadata = null;
+    playbackState = '';
+
+    // Minimal navigator.mediaSession + MediaMetadata fake (jsdom has neither).
+    (navigator as unknown as Record<string, unknown>)['mediaSession'] = {
+      setActionHandler(action: string, fn: (details?: Record<string, unknown>) => void) {
+        handlers[action] = fn;
+      },
+      set playbackState(v: string) {
+        playbackState = v;
+      },
+      set metadata(m: { title: string; artist: string; album: string }) {
+        metadata = m;
+      },
+    };
+    (globalThis as unknown as Record<string, unknown>)['MediaMetadata'] = class {
+      constructor(init: { title: string; artist: string; album: string }) {
+        Object.assign(this, init);
+      }
+    };
+  });
+
+  afterEach(() => {
+    delete (navigator as unknown as Record<string, unknown>)['mediaSession'];
+    delete (globalThis as unknown as Record<string, unknown>)['MediaMetadata'];
+  });
+
+  it('registers handlers for play/pause/next/prev', () => {
+    new PlayerService();
+    expect(typeof handlers['play']).toBe('function');
+    expect(typeof handlers['pause']).toBe('function');
+    expect(typeof handlers['nexttrack']).toBe('function');
+    expect(typeof handlers['previoustrack']).toBe('function');
+  });
+
+  it('earbud play/pause buttons toggle the player', () => {
+    const player = new PlayerService();
+    player.playTrack(TRACKS[0], TRACKS);
+    expect(player.isPlaying()).toBe(true);
+
+    handlers['pause']?.();
+    expect(player.isPlaying()).toBe(false);
+
+    handlers['play']?.();
+    expect(player.isPlaying()).toBe(true);
+  });
+
+  it('earbud next/prev buttons change the track', () => {
+    const player = new PlayerService();
+    player.playTrack(TRACKS[0], TRACKS);
+
+    handlers['nexttrack']?.();
+    expect(player.currentTrack()?.id).toBe(TRACKS[1].id);
+
+    handlers['previoustrack']?.();
+    expect(player.currentTrack()?.id).toBe(TRACKS[0].id);
+  });
+
+  it('publishes track metadata and playback state', () => {
+    const player = new PlayerService();
+    player.playTrack(TRACKS[0], TRACKS);
+
+    expect(playbackState).toBe('playing');
+    expect(metadata?.title).toBe(TRACKS[0].title);
+    expect(metadata?.artist).toBe(TRACKS[0].artist);
+
+    player.toggle();
+    expect(playbackState).toBe('paused');
+  });
+});

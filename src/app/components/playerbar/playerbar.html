@@ -69,6 +69,7 @@
 
   <!-- Right: volume etc -->
   <div class="hidden md:flex items-center gap-3 w-[30%] justify-end">
+    <app-bluetooth-control />
     <button class="text-[#b3b3b3] hover:text-white" title="Queue">☰</button>
     <button (click)="player.toggleMute()" class="text-[#b3b3b3] hover:text-white" title="Mute">
       @if (isMuted() || volume() === 0) {

@@ -1,9 +1,11 @@
 import { Component, computed, inject } from '@angular/core';
 import { PlayerService } from '../../services/player.service';
 import { formatTime } from '../../data/music-data';
+import { BluetoothControl } from '../bluetooth-control/bluetooth-control';
 
 @Component({
   selector: 'app-playerbar',
+  imports: [BluetoothControl],
   templateUrl: './playerbar.html',
 })
 export class Playerbar {

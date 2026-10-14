@@ -1,5 +1,7 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { Track } from '../data/music-data';
+import { TRACKS, Track } from '../data/music-data';
+
+export type RepeatMode = 'off' | 'all' | 'one';
 
 @Injectable({ providedIn: 'root' })
 export class PlayerService {
@@ -9,9 +11,17 @@ export class PlayerService {
   readonly volume = signal(70);
   readonly isMuted = signal(false);
   readonly isShuffled = signal(false);
-  readonly repeatMode = signal<'off' | 'all' | 'one'>('off');
+  readonly repeatMode = signal<RepeatMode>('off');
   readonly likedIds = signal<Set<string>>(new Set(['t1', 't6']));
 
+  /**
+   * Full catalog used for the radio fallback when the queue runs out.
+   * Defaults to the bundled seed; the playerbar syncs the live
+   * backend catalog in via setLibrary() once it loads.
+   */
+  private library = signal<Track[]>(TRACKS);
+  /** Real MP3 duration from metadata — null until loaded / for simulated tracks. */
+  private realDuration = signal<number | null>(null);
   private queue = signal<Track[]>([]);
   private timer: ReturnType<typeof setInterval> | null = null;
 
@@ -20,14 +30,33 @@ export class PlayerService {
   private audioSrcKey: string | null = null;
 
   readonly hasTrack = computed(() => this.currentTrack() !== null);
+  /** Real duration when known, else the track's listed duration. */
+  readonly duration = computed(() => {
+    const real = this.realDuration();
+    if (real !== null && Number.isFinite(real) && real > 0) return real;
+    return this.currentTrack()?.duration ?? 0;
+  });
   readonly progressPercent = computed(() => {
-    const track = this.currentTrack();
-    if (!track) return 0;
-    return Math.min(100, (this.progress() / track.duration) * 100);
+    const dur = this.duration();
+    if (!dur) return 0;
+    return Math.min(100, (this.progress() / dur) * 100);
   });
 
   constructor() {
     this.startTicker();
+  }
+
+  setLibrary(tracks: Track[]): void {
+    if (tracks && tracks.length) this.library.set(tracks);
+  }
+
+  /** Stop the fallback ticker + audio (used in tests / teardown). */
+  destroy(): void {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    if (this.audio) this.audio.pause();
   }
 
   playTrack(track: Track, context: Track[] = []): void {
@@ -35,11 +64,22 @@ export class PlayerService {
     else if (!this.queue().length) this.queue.set([track]);
     this.currentTrack.set(track);
     this.progress.set(0);
+    this.realDuration.set(null);
     this.isPlaying.set(true);
-    if (track.audioUrl && this.audioSrcKey !== track.audioUrl) {
-      this.audioSrcKey = track.audioUrl;
-      const a = this.ensureAudio();
-      if (a) a.src = track.audioUrl;
+    if (track.audioUrl) {
+      const url = encodeURI(track.audioUrl);
+      if (this.audioSrcKey !== url) {
+        this.audioSrcKey = url;
+        const a = this.ensureAudio();
+        if (a) {
+          a.src = url;
+          try {
+            a.load();
+          } catch {
+            /* not ready — applyAudioState retries */
+          }
+        }
+      }
     }
     this.applyAudioState();
   }
@@ -50,43 +90,47 @@ export class PlayerService {
     this.applyAudioState();
   }
 
+  /** Manual next — always advances (repeat-one only affects auto-advance). */
   next(): void {
-    const q = this.queue();
-    const cur = this.currentTrack();
-    if (!cur || !q.length) return;
-    if (this.repeatMode() === 'one') {
-      this.progress.set(0);
-      return;
-    }
-    let idx = q.findIndex((x) => x.id === cur.id);
-    if (this.isShuffled()) {
-      idx = Math.floor(Math.random() * q.length);
-    } else {
-      idx = (idx + 1) % q.length;
-    }
-    this.playTrack(q[idx], q);
+    this.advance(false);
   }
 
   prev(): void {
     const q = this.queue();
     const cur = this.currentTrack();
     if (!cur) return;
+    // More than 3s in → restart the song (and the real audio element).
     if (this.progress() > 3) {
-      this.progress.set(0);
+      this.restartCurrent();
       return;
     }
     if (!q.length) return;
     const idx = q.findIndex((x) => x.id === cur.id);
-    const prevIdx = (idx - 1 + q.length) % q.length;
-    this.playTrack(q[prevIdx], q);
+    if (idx <= 0) {
+      if (this.repeatMode() === 'all') this.playTrack(q[q.length - 1], q);
+      else this.restartCurrent();
+      return;
+    }
+    this.playTrack(q[idx - 1], q);
+  }
+
+  /** Called when a track plays to the end (audio `ended` event or ticker). */
+  handleTrackEnd(): void {
+    this.advance(true);
   }
 
   seekTo(seconds: number): void {
-    const track = this.currentTrack();
-    if (!track) return;
-    const clamped = Math.max(0, Math.min(track.duration, seconds));
+    const dur = this.duration();
+    if (!dur) return;
+    const clamped = Math.max(0, Math.min(dur, seconds));
     this.progress.set(clamped);
-    if (this.audio?.src) this.audio.currentTime = clamped;
+    if (this.audio && this.audioSrcKey) {
+      try {
+        this.audio.currentTime = clamped;
+      } catch {
+        /* element not ready */
+      }
+    }
   }
 
   setVolume(v: number): void {
@@ -110,6 +154,70 @@ export class PlayerService {
     this.repeatMode.set(next);
   }
 
+  /**
+   * Shared step logic.
+   * - auto=false (next button): always moves (repeat-one does NOT trap the button).
+   * - auto=true (track ended): repeat-one restarts; repeat-all loops the queue;
+   *   repeat-off plays a random song from the library (radio, forever).
+   */
+  private advance(auto: boolean): void {
+    const q = this.queue();
+    const cur = this.currentTrack();
+    if (!cur || !q.length) return;
+    if (auto && this.repeatMode() === 'one') {
+      this.restartCurrent();
+      return;
+    }
+    if (this.isShuffled()) {
+      if (q.length === 1) {
+        if (this.repeatMode() === 'all') {
+          this.restartCurrent();
+          return;
+        }
+        this.playRadio(cur.id);
+        return;
+      }
+      let pick = Math.floor(Math.random() * q.length);
+      if (q[pick].id === cur.id) pick = (pick + 1) % q.length;
+      this.playTrack(q[pick], q);
+      return;
+    }
+    const idx = q.findIndex((x) => x.id === cur.id);
+    const atEnd = idx === -1 || idx === q.length - 1;
+    if (!atEnd) {
+      this.playTrack(q[idx + 1], q);
+      return;
+    }
+    if (this.repeatMode() === 'all') {
+      this.playTrack(q[0], q);
+      return;
+    }
+    // Queue exhausted → radio: random song from the database, forever.
+    this.playRadio(cur.id);
+  }
+
+  /** Restart the current song from 0 (keeps paused state as-is). */
+  private restartCurrent(): void {
+    this.progress.set(0);
+    if (this.audio && this.audioSrcKey) {
+      try {
+        this.audio.currentTime = 0;
+      } catch {
+        /* element not ready */
+      }
+    }
+    this.applyAudioState();
+  }
+
+  /** Radio fallback: random library track (never the one just played). */
+  private playRadio(excludeId: string | null): void {
+    const pool = this.library().length ? this.library() : TRACKS;
+    const candidates = excludeId ? pool.filter((t) => t.id !== excludeId) : pool;
+    const list = candidates.length ? candidates : pool;
+    const pick = list[Math.floor(Math.random() * list.length)];
+    this.playTrack(pick, [...this.queue(), pick]);
+  }
+
   toggleLike(id: string): void {
     this.likedIds.update((set) => {
       const next = new Set(set);
@@ -129,41 +237,40 @@ export class PlayerService {
       if (!this.isPlaying()) return;
       const track = this.currentTrack();
       if (!track) return;
-
-      // Real audio file playing → follow its clock.
-      if (this.audio?.src && !this.audio.paused && !this.audio.ended) {
-        this.progress.set(this.audio.currentTime);
-        return;
-      }
-      if (this.audio?.src && this.audio.ended) {
-        this.next();
-        return;
-      }
-
+      // Real audio files drive progress via timeupdate/ended events.
+      if (track.audioUrl) return;
+      // Simulated tracks (no audio file): advance the clock manually.
       const next = this.progress() + 1;
-      if (next >= track.duration) {
-        if (this.repeatMode() === 'one') {
-          this.progress.set(0);
-          if (this.audio?.src) this.audio.currentTime = 0;
-        } else {
-          this.next();
-        }
-      } else {
-        this.progress.set(next);
-      }
+      if (next >= this.duration()) this.advance(true);
+      else this.progress.set(next);
     }, 1000);
   }
 
   private ensureAudio(): HTMLAudioElement | null {
     if (typeof Audio === 'undefined') return null; // non-browser (tests)
-    if (!this.audio) this.audio = new Audio();
+    if (!this.audio) {
+      this.audio = new Audio();
+      this.audio.preload = 'auto';
+      this.audio.addEventListener('timeupdate', () => {
+        if (this.audio) this.progress.set(this.audio.currentTime);
+      });
+      this.audio.addEventListener('loadedmetadata', () => {
+        const d = this.audio?.duration;
+        if (typeof d === 'number' && Number.isFinite(d) && d > 0) this.realDuration.set(d);
+      });
+      this.audio.addEventListener('ended', () => this.advance(true));
+      this.audio.addEventListener('error', () => {
+        // Broken file (e.g. missing mp3) — skip instead of stalling.
+        if (this.isPlaying()) this.advance(true);
+      });
+    }
     return this.audio;
   }
 
   /** Sync the HTMLAudioElement with current signals (play/pause/volume). */
   private applyAudioState(): void {
     const track = this.currentTrack();
-    const url = track?.audioUrl ?? null;
+    const url = track?.audioUrl ? encodeURI(track.audioUrl) : null;
     if (!url) {
       if (this.audio) this.audio.pause();
       return;
@@ -173,6 +280,11 @@ export class PlayerService {
     if (this.audioSrcKey !== url) {
       this.audioSrcKey = url;
       a.src = url;
+      try {
+        a.load();
+      } catch {
+        /* ignore */
+      }
     }
     a.volume = this.isMuted() ? 0 : this.volume() / 100;
     if (this.isPlaying()) {
@@ -180,7 +292,7 @@ export class PlayerService {
         const p = a.play();
         if (p && typeof p.catch === 'function') p.catch(() => undefined);
       } catch {
-        /* jsdom / autoplay restrictions — simulated ticker takes over */
+        /* jsdom / autoplay restrictions — events/ticker take over */
       }
     } else {
       a.pause();

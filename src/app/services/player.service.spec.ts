@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ARTISTS, PLAYLISTS, TRACKS, formatTime } from '../data/music-data';
 import { PlayerService } from './player.service';
 
@@ -33,6 +33,8 @@ describe('PlayerService', () => {
     player = new PlayerService();
   });
 
+  afterEach(() => player.destroy());
+
   it('starts with no track and paused', () => {
     expect(player.currentTrack()).toBeNull();
     expect(player.isPlaying()).toBe(false);
@@ -52,6 +54,53 @@ describe('PlayerService', () => {
     expect(player.currentTrack()?.id).toBe('t2');
     player.prev();
     expect(player.currentTrack()?.id).toBe('t1');
+  });
+
+  it('manual next always advances even when repeat is one', () => {
+    const queue = TRACKS.slice(0, 3);
+    player.playTrack(queue[0], queue);
+    player.cycleRepeat(); // all
+    player.cycleRepeat(); // one
+    expect(player.repeatMode()).toBe('one');
+    player.next();
+    expect(player.currentTrack()?.id).toBe(queue[1].id);
+  });
+
+  it('auto-advance with repeat one restarts the same song', () => {
+    const queue = TRACKS.slice(0, 3);
+    player.playTrack(queue[0], queue);
+    player.cycleRepeat();
+    player.cycleRepeat();
+    player.seekTo(10);
+    player.handleTrackEnd();
+    expect(player.currentTrack()?.id).toBe(queue[0].id);
+    expect(player.progress()).toBe(0);
+    expect(player.isPlaying()).toBe(true);
+  });
+
+  it('auto-advance with repeat all loops the queue', () => {
+    const queue = TRACKS.slice(0, 2);
+    player.playTrack(queue[1], queue);
+    player.cycleRepeat(); // all
+    player.handleTrackEnd();
+    expect(player.currentTrack()?.id).toBe(queue[0].id);
+  });
+
+  it('queue end with repeat off plays a different random song (radio)', () => {
+    const queue = TRACKS.slice(0, 2);
+    player.playTrack(queue[1], queue);
+    expect(player.repeatMode()).toBe('off');
+    player.handleTrackEnd();
+    expect(player.isPlaying()).toBe(true);
+    expect(player.currentTrack()?.id).not.toBe(queue[1].id);
+    expect(player.progress()).toBe(0);
+  });
+
+  it('manual next at queue end also falls into radio', () => {
+    const queue = TRACKS.slice(0, 2);
+    player.playTrack(queue[1], queue);
+    player.next();
+    expect(player.currentTrack()?.id).not.toBe(queue[1].id);
   });
 
   it('clamps seeks to the track duration', () => {

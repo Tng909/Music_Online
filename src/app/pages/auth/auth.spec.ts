@@ -56,7 +56,9 @@ describe('Log in page', () => {
     expect(el.querySelector('h1')?.textContent).toContain('Welcome back');
     expect(el.textContent).toContain('Email');
     expect(el.querySelector('input[type="email"]')).toBeTruthy();
-    expect(el.querySelector('button[type="submit"]')?.textContent?.trim()).toBe('Continue');
+    expect(el.textContent).toContain('Password');
+    expect(el.querySelector('input[type="password"]')).toBeTruthy();
+    expect(el.querySelector('button[type="submit"]')?.textContent?.trim()).toBe('Log in');
     expect(el.textContent).toContain("Don't have an account?");
     expect(el.querySelector('a[href="/signup"]')?.textContent).toContain('Sign up');
   });

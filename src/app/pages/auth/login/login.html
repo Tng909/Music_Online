@@ -11,7 +11,7 @@
       Welcome back
     </h1>
 
-    <form (ngSubmit)="step() === 'email' ? next() : submit()" class="flex flex-col gap-4">
+    <form (ngSubmit)="submit()" class="flex flex-col gap-4">
       <label for="login-email" class="text-sm font-bold">Email</label>
       <input
         id="login-email"
@@ -21,43 +21,27 @@
         [ngModel]="email()"
         (ngModelChange)="email.set($event)"
         placeholder="name@domain.com"
-        [class.hidden]="step() === 'password'"
         class="h-12 rounded-[4px] border border-[#727272] bg-black px-4 text-base text-white placeholder:text-[#a7a7a7] outline-none focus:border-white"
       />
-      @if (step() === 'password') {
-        <p class="text-sm text-[#b3b3b3] -mt-2">{{ email() }}</p>
-        <label for="login-password" class="text-sm font-bold">Password</label>
-        <input
-          id="login-password"
-          name="password"
-          type="password"
-          required
-          [ngModel]="password()"
-          (ngModelChange)="password.set($event)"
-          placeholder="Your password"
-          class="h-12 rounded-[4px] border border-[#727272] bg-black px-4 text-base text-white placeholder:text-[#a7a7a7] outline-none focus:border-white"
-        />
-      }
+      <label for="login-password" class="text-sm font-bold">Password</label>
+      <input
+        id="login-password"
+        name="password"
+        type="password"
+        required
+        [ngModel]="password()"
+        (ngModelChange)="password.set($event)"
+        placeholder="Your password"
+        class="h-12 rounded-[4px] border border-[#727272] bg-black px-4 text-base text-white placeholder:text-[#a7a7a7] outline-none focus:border-white"
+      />
       @if (error()) {
         <p class="text-sm text-[#f37c7c]">{{ error() }}</p>
       }
       <button type="submit" [disabled]="auth.busy()"
         class="h-12 rounded-full bg-[#1ed760] hover:bg-[#1fdf64] hover:scale-[1.02] transition text-black text-base font-bold disabled:opacity-60 disabled:hover:scale-100">
-        @if (auth.busy()) {
-          Please wait…
-        } @else if (step() === 'email') {
-          Continue
-        } @else {
-          Log in
-        }
+        {{ auth.busy() ? 'Please wait…' : 'Log in' }}
       </button>
     </form>
-
-    @if (step() === 'password') {
-      <p class="text-center mt-4">
-        <button type="button" (click)="back()" class="text-sm font-bold text-[#b3b3b3] hover:text-white transition">← Back</button>
-      </p>
-    }
 
     <div class="text-center mt-12 mb-6">
       <p class="text-[#b3b3b3] text-base">Don't have an account?</p>

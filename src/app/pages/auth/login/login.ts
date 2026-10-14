@@ -12,7 +12,6 @@ export class Login {
   auth = inject(AuthService);
   private router = inject(Router);
 
-  step = signal<'email' | 'password'>('email');
   email = signal('');
   password = signal('');
   error = signal<string | null>(null);
@@ -21,25 +20,14 @@ export class Login {
     if (this.auth.user()) void this.router.navigate(['/']);
   }
 
-  /** Step 1: validate the email format, then reveal the password field. */
-  next(): void {
+  /** Single step: validate both fields, then log in. AuthService navigates home on success. */
+  async submit(): Promise<void> {
     this.error.set(null);
     this.auth.clearError();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email().trim())) {
       this.error.set('Enter a valid email address.');
       return;
     }
-    this.step.set('password');
-  }
-
-  back(): void {
-    this.error.set(null);
-    this.step.set('email');
-  }
-
-  /** Step 2: log in. AuthService navigates home on success. */
-  async submit(): Promise<void> {
-    this.error.set(null);
     if (!this.password()) {
       this.error.set('Enter your password.');
       return;

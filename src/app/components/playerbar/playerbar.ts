@@ -1,5 +1,6 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { PlayerService } from '../../services/player.service';
+import { MusicService } from '../../services/music.service';
 import { formatTime } from '../../data/music-data';
 
 @Component({
@@ -8,6 +9,7 @@ import { formatTime } from '../../data/music-data';
 })
 export class Playerbar {
   player = inject(PlayerService);
+  private music = inject(MusicService);
 
   track = this.player.currentTrack;
   isPlaying = this.player.isPlaying;
@@ -17,15 +19,73 @@ export class Playerbar {
   isShuffled = this.player.isShuffled;
   repeatMode = this.player.repeatMode;
 
-  elapsed = computed(() => formatTime(this.progress()));
-  total = computed(() => formatTime(this.track()?.duration ?? 0));
+  elapsed = computed(() => formatTime(this.scrubbing() ? this.scrubValue() : this.progress()));
+  total = computed(() => formatTime(this.player.duration()));
 
-  onSeek(event: Event): void {
+  /** While dragging the progress bar, show the local preview, not the ticker. */
+  scrubbing = signal(false);
+  scrubValue = signal(0);
+
+  /** Percent + fill shown on the slider (preview while scrubbing). */
+  sliderPercent = computed(() => {
+    const dur = this.player.duration();
+    if (!dur) return 0;
+    const pos = this.scrubbing() ? this.scrubValue() : this.progress();
+    return Math.max(0, Math.min(100, (pos / dur) * 100));
+  });
+  sliderFill = computed(
+    () => `linear-gradient(to right, #fff ${this.sliderPercent()}%, rgba(255,255,255,0.25) ${this.sliderPercent()}%)`,
+  );
+  seekLabel = computed(() => {
+    const dur = this.player.duration();
+    if (!dur) return 'Seek';
+    const v = this.scrubbing() ? this.scrubValue() : this.progress();
+    return `Seek to ${formatTime(v)} of ${formatTime(dur)}`;
+  });
+
+  repeatTitle = computed(() => {
+    const m = this.repeatMode();
+    return m === 'off' ? 'Repeat: off' : m === 'all' ? 'Repeat playlist' : 'Repeat one song';
+  });
+
+  constructor() {
+    // Feed the live backend catalog to the radio fallback (runs forever
+    // after the queue ends). Polling keeps this decoupled from load timing.
+    const sync = (): void => {
+      const songs = this.music.songs();
+      if (songs.length) {
+        this.player.setLibrary(songs);
+        return;
+      }
+      setTimeout(sync, 1000);
+    };
+    sync();
+  }
+
+  onSeekStart(event: Event): void {
     const el = event.target as HTMLInputElement;
-    const track = this.track();
-    if (!track) return;
+    if (!this.track()) return;
+    this.scrubbing.set(true);
+    this.scrubValue.set(this.secondsFromSlider(el));
+  }
+
+  onSeeking(event: Event): void {
+    if (!this.scrubbing()) return;
+    this.scrubValue.set(this.secondsFromSlider(event.target as HTMLInputElement));
+  }
+
+  onSeekEnd(event: Event): void {
+    const el = event.target as HTMLInputElement;
+    if (!this.scrubbing()) return;
+    this.scrubbing.set(false);
+    this.player.seekTo(this.secondsFromSlider(el));
+  }
+
+  private secondsFromSlider(el: HTMLInputElement): number {
+    const dur = this.player.duration();
     const pct = Number(el.value);
-    this.player.seekTo((pct / 100) * track.duration);
+    if (!dur || Number.isNaN(pct)) return 0;
+    return (Math.max(0, Math.min(100, pct)) / 100) * dur;
   }
 
   onVolume(event: Event): void {

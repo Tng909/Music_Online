@@ -67,3 +67,12 @@ input[type='range'].spot-range::-moz-range-thumb {
   50% { transform: scaleY(1); }
 }
 .eq-bar { transform-origin: bottom; animation: eq-bounce 0.9s ease-in-out infinite; }
+
+/* Native dropdown lists — dark to match the theme (options default to white) */
+select {
+  color-scheme: dark;
+}
+select option {
+  background: #282828;
+  color: #fff;
+}

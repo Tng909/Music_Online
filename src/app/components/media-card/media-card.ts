@@ -2,10 +2,11 @@ import { Component, Input, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Playlist, Track } from '../../data/music-data';
 import { PlayerService } from '../../services/player.service';
+import { ArtistLinks } from '../artist-links/artist-links';
 
 @Component({
   selector: 'app-media-card',
-  imports: [RouterLink],
+  imports: [RouterLink, ArtistLinks],
   templateUrl: './media-card.html',
 })
 export class MediaCard {
@@ -25,6 +26,14 @@ export class MediaCard {
     if (this.kind === 'playlist') return (this.item as Playlist).description;
     const t = this.item as Track;
     return `${t.artist} • ${t.album}`;
+  }
+
+  get trackArtist(): string {
+    return (this.item as Track).artist;
+  }
+
+  get trackAlbum(): string {
+    return (this.item as Track).album;
   }
 
   get title(): string {

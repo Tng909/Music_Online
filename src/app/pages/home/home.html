@@ -22,33 +22,20 @@
     </div>
   </div>
 
-  <!-- Made for you -->
-  <section class="mt-6">
-    <div class="flex items-end justify-between mb-3">
-      <div>
-        <h2 class="text-xl md:text-2xl font-extrabold hover:underline cursor-pointer">Made For You</h2>
-        <p class="text-sm text-[#b3b3b3]">Get better recommendations the more you listen.</p>
-      </div>
-      <a routerLink="/search" class="text-xs font-bold tracking-widest text-[#b3b3b3] hover:text-white">SHOW ALL</a>
-    </div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-      @for (p of madeForYou(); track p.id) {
-        <app-media-card [item]="p" kind="playlist" />
-      }
-    </div>
-  </section>
-
-  <!-- Top charts strip -->
+  <!-- Most played songs (real play counts) -->
+  @if (chartTracks().length) {
   <section class="mt-8">
-    <h2 class="text-xl md:text-2xl font-extrabold mb-3">Your top mixes</h2>
+    <h2 class="text-xl md:text-2xl font-extrabold mb-3">Top songs</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
       @for (tr of chartTracks(); track tr.id) {
         <app-media-card [item]="tr" kind="track" [context]="chartTracks()" />
       }
     </div>
   </section>
+  }
 
-  <!-- Popular artists -->
+  <!-- Popular artists (by real monthly listeners) -->
+  @if (artists().length) {
   <section class="mt-8">
     <div class="flex items-end justify-between mb-3">
       <h2 class="text-xl md:text-2xl font-extrabold hover:underline cursor-pointer">Popular artists</h2>
@@ -56,30 +43,14 @@
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
       @for (a of artists(); track a.id) {
-        <div class="group/card bg-transparent hover:bg-[#181818] transition-colors rounded-lg p-4 flex flex-col gap-3 cursor-pointer">
-          <div class="relative">
-            @if (a.coverUrl; as url) {
-              <img [src]="url" [alt]="a.name" class="aspect-square w-full rounded-full object-cover shadow-lg" />
-            } @else {
-              <div [class]="'aspect-square w-full rounded-full flex items-center justify-center text-5xl bg-gradient-to-br shadow-lg ' + a.gradient">
-                {{ a.emoji }}
-              </div>
-            }
-            <button title="Play artist"
-              class="play-btn absolute bottom-2 right-2 w-12 h-12 rounded-full bg-[#1ed760] text-black flex items-center justify-center shadow-xl hover:scale-105">
-              <svg viewBox="0 0 24 24" class="w-6 h-6 translate-x-[1px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
-            </button>
-          </div>
-          <div>
-            <p class="text-[15px] font-bold text-white truncate hover:underline">{{ a.name }}</p>
-            <p class="text-sm text-[#b3b3b3]">Artist • {{ a.followers }} monthly</p>
-          </div>
-        </div>
+        <app-artist-card [artist]="a" />
       }
     </div>
   </section>
+  }
 
   <!-- All playlists -->
+  @if (topPlaylists().length) {
   <section class="mt-8">
     <h2 class="text-xl md:text-2xl font-extrabold mb-3">Featured playlists</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
@@ -88,4 +59,5 @@
       }
     </div>
   </section>
+  }
 </div>

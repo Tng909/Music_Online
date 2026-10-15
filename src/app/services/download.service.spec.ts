@@ -19,7 +19,7 @@ const WITH_FILE: Track = {
   artist: 'Michael Jackson',
   album: 'Thriller',
   duration: 294,
-  plays: '1.4B',
+  plays: 1400,
   gradient: 'from-zinc-700 to-zinc-950',
   emoji: '🕺',
   coverUrl: '/covers/BillieJean.jpg',
@@ -32,7 +32,7 @@ const SIMULATED: Track = {
   artist: 'The Weeknd',
   album: 'After Hours',
   duration: 203,
-  plays: '4.2B',
+  plays: 4200,
   gradient: 'from-rose-500 to-orange-400',
   emoji: '🌃',
   audioUrl: null,
@@ -89,12 +89,20 @@ describe('DownloadService', () => {
   });
 
   it('downloads the file and records it in history', async () => {
-    const ok = await svc.download(WITH_FILE);
-    expect(ok).toBe(true);
-    expect(globalThis.fetch).toHaveBeenCalledWith(encodeURI(WITH_FILE.audioUrl!));
-    expect(URL.createObjectURL).toHaveBeenCalled();
-    expect(HTMLAnchorElement.prototype.click).toHaveBeenCalled();
-    expect(URL.revokeObjectURL).toHaveBeenCalled();
+    vi.useFakeTimers({ toFake: ['setTimeout'] });
+    try {
+      const ok = await svc.download(WITH_FILE);
+      expect(ok).toBe(true);
+      expect(globalThis.fetch).toHaveBeenCalledWith(encodeURI(WITH_FILE.audioUrl!));
+      expect(URL.createObjectURL).toHaveBeenCalled();
+      expect(HTMLAnchorElement.prototype.click).toHaveBeenCalled();
+      // Blob URL stays alive long enough for the browser to save the file.
+      expect(URL.revokeObjectURL).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(10_000);
+      expect(URL.revokeObjectURL).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
 
     expect(svc.isDownloaded('s1')).toBe(true);
     expect(svc.count()).toBe(1);

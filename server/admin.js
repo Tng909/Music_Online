@@ -97,7 +97,7 @@ function createAdminRouter() {
 
   // ---- Songs ----
   router.post('/songs', requireAdmin, (req, res) => {
-    const { title, artist, album, duration, plays, gradient, emoji, explicit, coverUrl, audioUrl } = req.body || {};
+    const { title, artist, album, duration, gradient, emoji, explicit, coverUrl, audioUrl } = req.body || {};
     if (typeof title !== 'string' || !title.trim()) {
       return res.status(400).json({ error: 'Song title is required.' });
     }
@@ -115,7 +115,6 @@ function createAdminRouter() {
       artist: artist.trim().slice(0, 240),
       album: typeof album === 'string' && album.trim() ? album.trim().slice(0, 120) : 'Single',
       duration: Math.round(dur),
-      plays: typeof plays === 'string' && plays ? plays : '0',
       gradient: typeof gradient === 'string' && gradient ? gradient : 'from-zinc-700 to-zinc-950',
       emoji: typeof emoji === 'string' && emoji ? emoji : '🎵',
       explicit: explicit === true,
@@ -133,7 +132,7 @@ function createAdminRouter() {
     const db = readDb();
     const song = db.songs.find((s) => s.id === req.params.id);
     if (!song) return res.status(404).json({ error: 'Song not found.' });
-    const { title, artist, album, duration, plays, gradient, emoji, explicit, coverUrl, audioUrl } = req.body || {};
+    const { title, artist, album, duration, gradient, emoji, explicit, coverUrl, audioUrl } = req.body || {};
     if (title !== undefined) {
       if (typeof title !== 'string' || !title.trim()) return res.status(400).json({ error: 'Song title is required.' });
       song.title = title.trim().slice(0, 120);
@@ -148,7 +147,6 @@ function createAdminRouter() {
       if (!Number.isFinite(dur) || dur <= 0) return res.status(400).json({ error: 'Duration must be positive.' });
       song.duration = Math.round(dur);
     }
-    if (plays !== undefined) song.plays = String(plays);
     if (gradient !== undefined) song.gradient = gradient;
     if (emoji !== undefined) song.emoji = emoji;
     if (explicit !== undefined) song.explicit = explicit === true;
@@ -384,20 +382,22 @@ function createAdminRouter() {
 
 
   // ---- Play events + live listeners ----
+  const isClientId = (v) => typeof v === 'string' && v.length > 0 && v.length <= 64;
   // clientId (one per player tab) -> { listener, trackId, at }. `listener` is the
   // signed-in user id, or the clientId for guests, so one person with two tabs
   // counts once. Only playing tabs heartbeat; pause / tab close sends /stats/stop.
   const live = new Map();
-  const isClientId = (v) => typeof v === 'string' && v.length > 0 && v.length <= 64;
 
   router.post('/stats/play', (req, res) => {
-    const { trackId } = req.body || {};
+    const { trackId, clientId } = req.body || {};
     if (typeof trackId !== 'string' || !trackId) return res.status(400).json({ error: 'trackId is required.' });
-    const auth = req.headers.authorization || '';
-    const userId = auth.startsWith('Bearer ') ? auth.slice(7, 23) : 'anon';
+    if (!readDb().songs.some((s) => s.id === trackId)) return res.status(404).json({ error: 'Song not found.' });
+    // Real listener identity: account id when signed in, else this browser tab.
+    const userId = userFromRequest(req)?.user?.id || (isClientId(clientId) ? `guest-${clientId}` : 'guest');
     const plays = readPlays();
     plays.push({ trackId, userId, at: isoNow() });
-    writeJson(PLAYS_PATH, plays.slice(-20000));
+    // Play counts are computed from this log, so keep a generous history.
+    writeJson(PLAYS_PATH, plays.slice(-200000));
     res.status(201).end();
   });
 

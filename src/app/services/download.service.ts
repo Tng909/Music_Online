@@ -8,7 +8,8 @@ export interface DownloadRecord {
   artist: string;
   album: string;
   duration: number;
-  plays: string;
+  /** Play count when saved (older records stored a display string). */
+  plays?: number | string;
   gradient: string;
   emoji: string;
   coverUrl?: string | null;
@@ -93,16 +94,14 @@ export class DownloadService {
       if (!res.ok) throw new Error(`Download failed (HTTP ${res.status}).`);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      try {
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = downloadFileName(track);
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } finally {
-        URL.revokeObjectURL(url);
-      }
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = downloadFileName(track);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // Revoking right after click() can cancel the save in Firefox / Safari.
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
       this.record(track);
       return true;
     } catch (err) {
@@ -130,7 +129,7 @@ export class DownloadService {
       artist: record.artist,
       album: record.album,
       duration: record.duration,
-      plays: record.plays,
+      plays: typeof record.plays === 'number' ? record.plays : 0,
       gradient: record.gradient,
       emoji: record.emoji,
       coverUrl: record.coverUrl,

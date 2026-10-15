@@ -2,20 +2,19 @@ import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
-import { formatTime, Track } from '../../data/music-data';
+import { QueueSource } from '../../data/music-data';
 import { PlayerService } from '../../services/player.service';
 import { MusicService } from '../../services/music.service';
-import { DownloadService } from '../../services/download.service';
+import { TrackList } from '../../components/track-list/track-list';
 
 @Component({
   selector: 'app-playlist',
-  imports: [RouterLink],
+  imports: [RouterLink, TrackList],
   templateUrl: './playlist.html',
 })
 export class PlaylistPage {
   player = inject(PlayerService);
   music = inject(MusicService);
-  downloads = inject(DownloadService);
   private route = inject(ActivatedRoute);
 
   playlistId = toSignal(this.route.paramMap.pipe(map((p) => p.get('id') ?? '')), {
@@ -23,34 +22,26 @@ export class PlaylistPage {
   });
 
   playlist = computed(() => this.music.getPlaylist(this.playlistId()));
-  currentId = computed(() => this.player.currentTrack()?.id);
-  isPlaying = this.player.isPlaying;
-  fmt = formatTime;
+  source = computed<QueueSource | null>(() => {
+    const pl = this.playlist();
+    return pl ? { type: 'playlist', id: pl.id, name: pl.title } : null;
+  });
+  /** True while this playlist is what the player is playing from. */
+  playingHere = computed(
+    () => this.player.isPlaying() && this.player.queueSource()?.id === this.playlist()?.id,
+  );
+
+  constructor() {
+    // Refresh so play counts are current.
+    void this.music.load();
+  }
 
   playAll(): void {
+    if (this.player.queueSource()?.id === this.playlist()?.id && this.player.currentTrack()) {
+      this.player.toggle();
+      return;
+    }
     const pl = this.playlist();
-    if (pl?.tracks.length) this.player.playTrack(pl.tracks[0], pl.tracks);
-  }
-
-  playTrack(id: string): void {
-    const pl = this.playlist();
-    const track = pl?.tracks.find((t) => t.id === id);
-    if (track && pl) this.player.playTrack(track, pl.tracks);
-  }
-
-  /** Save one song to the user's device (button stops the row's play click). */
-  downloadTrack(event: MouseEvent, track: Track): void {
-    event.stopPropagation();
-    void this.downloads.download(track);
-  }
-
-  toggleLike(event: MouseEvent, id: string): void {
-    event.stopPropagation();
-    this.player.toggleLike(id);
-  }
-
-  isLiked(id: string): boolean {
-    return this.player.isLiked(id);
+    if (pl?.tracks.length) this.player.playTrack(pl.tracks[0], pl.tracks, this.source());
   }
 }
-

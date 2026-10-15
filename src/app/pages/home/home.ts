@@ -3,10 +3,11 @@ import { RouterLink } from '@angular/router';
 import { PlayerService } from '../../services/player.service';
 import { MusicService } from '../../services/music.service';
 import { MediaCard } from '../../components/media-card/media-card';
+import { ArtistCard } from '../../components/artist-card/artist-card';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, MediaCard],
+  imports: [RouterLink, MediaCard, ArtistCard],
   templateUrl: './home.html',
 })
 export class Home {
@@ -16,11 +17,12 @@ export class Home {
   greeting = signal(this.computeGreeting());
 
   playlists = this.music.playlists;
-  artists = this.music.artists;
+  artists = computed(() =>
+    [...this.music.artists()].sort((a, b) => (b.monthlyListeners ?? 0) - (a.monthlyListeners ?? 0)).slice(0, 12),
+  );
   backendOk = this.music.backendOk;
 
   quickPicks = computed(() => this.playlists().slice(0, 6));
-  madeForYou = computed(() => this.playlists().slice(2, 8));
   topPlaylists = this.playlists;
   chartTracks = this.music.topSongs;
   currentId = this.player.currentTrack;
@@ -34,7 +36,7 @@ export class Home {
 
   playQuick(id: string): void {
     const pl = this.music.getPlaylist(id);
-    if (pl?.tracks.length) this.player.playTrack(pl.tracks[0], pl.tracks);
+    if (pl?.tracks.length) this.player.playTrack(pl.tracks[0], pl.tracks, { type: 'playlist', id: pl.id, name: pl.title });
   }
 }
 

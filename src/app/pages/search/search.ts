@@ -4,6 +4,7 @@ import { Artist, Track } from '../../data/music-data';
 import { PlayerService } from '../../services/player.service';
 import { MusicService } from '../../services/music.service';
 import { MediaCard } from '../../components/media-card/media-card';
+import { ArtistCard } from '../../components/artist-card/artist-card';
 
 const BROWSE_CARDS = [
   { title: 'Podcasts', gradient: 'from-purple-700 to-indigo-900', emoji: '🎙️' },
@@ -22,7 +23,7 @@ const BROWSE_CARDS = [
 
 @Component({
   selector: 'app-search',
-  imports: [MediaCard],
+  imports: [MediaCard, ArtistCard],
   templateUrl: './search.html',
 })
 export class Search {
@@ -55,14 +56,4 @@ export class Search {
       artists: this.music.artists().filter((a) => a.name.toLowerCase().includes(q)),
     };
   });
-
-  /** Plays the artist's linked songs, falling back to songs credited to their name. */
-  playArtist(artist: Artist): void {
-    const songs = this.music.songs();
-    const ids = artist.songIds ?? [];
-    const tracks = ids.length
-      ? songs.filter((s) => ids.includes(s.id))
-      : songs.filter((s) => s.artist.toLowerCase() === artist.name.toLowerCase());
-    if (tracks.length) this.player.playTrack(tracks[0], tracks);
-  }
 }

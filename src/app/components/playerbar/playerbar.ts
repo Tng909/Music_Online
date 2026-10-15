@@ -4,10 +4,11 @@ import { MusicService } from '../../services/music.service';
 import { formatTime } from '../../data/music-data';
 import { BluetoothControl } from '../bluetooth-control/bluetooth-control';
 import { DownloadService } from '../../services/download.service';
+import { ArtistLinks } from '../artist-links/artist-links';
 
 @Component({
   selector: 'app-playerbar',
-  imports: [BluetoothControl],
+  imports: [BluetoothControl, ArtistLinks],
   templateUrl: './playerbar.html',
 })
 export class Playerbar {

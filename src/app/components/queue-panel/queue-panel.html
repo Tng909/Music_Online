@@ -1,0 +1,75 @@
+<aside aria-label="Queue"
+  class="fixed inset-x-2 top-2 bottom-[96px] z-40 lg:static lg:inset-auto lg:z-auto lg:w-[340px] shrink-0 bg-[#121212] rounded-lg flex flex-col min-h-0 shadow-2xl lg:shadow-none">
+  <!-- Tabs -->
+  <div class="flex items-center gap-6 px-5 pt-4">
+    <button (click)="tab.set('queue')"
+      [class]="tab() === 'queue' ? 'text-white border-[#1ed760]' : 'text-[#b3b3b3] border-transparent hover:text-white'"
+      class="pb-2 text-base font-bold border-b-2 transition">Queue</button>
+    <button (click)="tab.set('recent')"
+      [class]="tab() === 'recent' ? 'text-white border-[#1ed760]' : 'text-[#b3b3b3] border-transparent hover:text-white'"
+      class="pb-2 text-base font-bold border-b-2 transition">Recently played</button>
+    <button (click)="player.queueOpen.set(false)" title="Close" aria-label="Close queue"
+      class="ml-auto mb-2 w-8 h-8 rounded-full flex items-center justify-center text-[#b3b3b3] hover:text-white hover:bg-white/10">
+      <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto px-3 pb-4 pt-3">
+    @if (tab() === 'queue') {
+      @if (player.currentTrack(); as cur) {
+        <h3 class="px-2 mb-2 text-base font-bold">Now playing</h3>
+        <ng-container *ngTemplateOutlet="row; context: { $implicit: cur, current: true }" />
+
+        @if (player.queueSource(); as src) {
+          @if (player.nextFromSource().length) {
+            <h3 class="px-2 mt-6 mb-2 text-base font-bold truncate">Next from: {{ src.name }}</h3>
+            @for (t of player.nextFromSource(); track t.id) {
+              <ng-container *ngTemplateOutlet="row; context: { $implicit: t, current: false }" />
+            }
+          }
+        }
+        @if (player.nextUp().length) {
+          <h3 class="px-2 mt-6 mb-2 text-base font-bold">Next up</h3>
+          @for (t of player.nextUp(); track t.id) {
+            <ng-container *ngTemplateOutlet="row; context: { $implicit: t, current: false }" />
+          }
+        }
+      } @else {
+        <p class="px-2 py-10 text-center text-sm text-[#b3b3b3]">Play a song to see your queue.</p>
+      }
+    } @else {
+      @for (t of player.recentlyPlayed(); track t.id) {
+        <ng-container *ngTemplateOutlet="row; context: { $implicit: t, current: t.id === player.currentTrack()?.id, recent: true }" />
+      } @empty {
+        <p class="px-2 py-10 text-center text-sm text-[#b3b3b3]">Nothing played yet.</p>
+      }
+    }
+  </div>
+</aside>
+
+<ng-template #row let-t let-current="current" let-recent="recent">
+  <div (click)="current ? player.toggle() : recent ? replay(t) : play(t)"
+    class="group flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/10 cursor-pointer">
+    <div class="relative w-12 h-12 shrink-0">
+      @if (t.coverUrl) {
+        <img [src]="t.coverUrl" [alt]="t.title" class="w-12 h-12 rounded object-cover" />
+      } @else {
+        <div [class]="'w-12 h-12 rounded flex items-center justify-center text-xl bg-gradient-to-br ' + t.gradient">{{ t.emoji }}</div>
+      }
+      <span class="absolute inset-0 rounded bg-black/50 hidden group-hover:flex items-center justify-center">
+        @if (current && player.isPlaying()) {
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+        } @else {
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+        }
+      </span>
+    </div>
+    <div class="min-w-0">
+      <p [class]="current ? 'text-[#1ed760]' : 'text-white'" class="text-[15px] truncate">{{ t.title }}</p>
+      <p class="text-sm text-[#b3b3b3] truncate">
+        @if (t.explicit) { <span class="mr-1 text-[10px] align-middle bg-white/30 text-black font-bold rounded-sm px-1 py-px">E</span> }
+        <app-artist-links [credit]="t.artist" />
+      </p>
+    </div>
+  </div>
+</ng-template>

@@ -21,7 +21,6 @@ so anyone who `git pull`s gets the same songs, playlists and artists.
      "artist": "Some Artist",
      "album": "Some Album",
      "duration": 210,
-     "plays": "1.0M",
      "gradient": "from-emerald-500 to-teal-700",
      "emoji": "🎵",
      "explicit": false,

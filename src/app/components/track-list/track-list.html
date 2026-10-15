@@ -1,0 +1,116 @@
+<!-- Search + filters -->
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  <div class="relative flex-1 min-w-[200px] max-w-sm">
+    <svg viewBox="0 0 24 24" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#b3b3b3]" fill="currentColor"><path d="M7 1.75a5.25 5.25 0 1 0 0 10.5 5.25 5.25 0 0 0 0-10.5zM.25 7a6.75 6.75 0 1 1 12.096 4.12l3.535 3.536a.75.75 0 1 1-1.06 1.06l-3.536-3.535A6.75 6.75 0 0 1 .25 7z"/></svg>
+    <input [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="Search in songs"
+      aria-label="Search songs"
+      class="w-full rounded-md bg-white/10 text-sm pl-9 pr-3 py-2 outline-none placeholder:text-[#b3b3b3] focus:bg-white/15" />
+  </div>
+  <select [ngModel]="sort()" (ngModelChange)="sort.set($event)" aria-label="Sort songs"
+    class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none">
+    <option value="default">Custom order</option>
+    <option value="plays-desc">Most played</option>
+    <option value="plays-asc">Least played</option>
+    <option value="newest">Newest upload</option>
+    <option value="oldest">Oldest upload</option>
+    <option value="longest">Longest</option>
+    <option value="shortest">Shortest</option>
+  </select>
+  <select [ngModel]="length()" (ngModelChange)="length.set($event)" aria-label="Song length"
+    class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none">
+    <option value="any">Any length</option>
+    <option value="short">Under 3 min</option>
+    <option value="medium">3 – 5 min</option>
+    <option value="long">Over 5 min</option>
+  </select>
+  <select [ngModel]="uploaded()" (ngModelChange)="uploaded.set($event)" aria-label="Upload date"
+    class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none">
+    <option value="any">Any upload date</option>
+    <option value="7">Last 7 days</option>
+    <option value="30">Last 30 days</option>
+    <option value="365">Last year</option>
+  </select>
+  @if (filtering()) {
+    <button (click)="reset()" class="text-sm font-bold text-[#b3b3b3] hover:text-white px-2">Clear</button>
+  }
+</div>
+
+<div class="hidden sm:grid sm:grid-cols-[16px_1fr_100px_48px_48px_64px] lg:grid-cols-[16px_1fr_120px_100px_48px_48px_64px] gap-4 px-4 pb-2 text-xs tracking-wider text-[#b3b3b3] border-b border-white/10">
+  <span>#</span><span>TITLE</span><span class="hidden lg:block">UPLOADED</span><span class="text-right">PLAYS</span><span></span><span></span><span class="text-right">⏱</span>
+</div>
+@for (t of visible(); track t.id; let i = $index) {
+  <div (click)="play(t)"
+    [class]="currentId() === t.id ? 'text-[#1ed760]' : 'text-white'"
+    class="group grid grid-cols-[32px_1fr_40px_40px_56px] sm:grid-cols-[16px_1fr_100px_48px_48px_64px] lg:grid-cols-[16px_1fr_120px_100px_48px_48px_64px] items-center gap-4 px-4 py-2.5 rounded-md hover:bg-white/10 cursor-pointer">
+    <span class="text-sm text-[#b3b3b3] tabular-nums flex items-center">
+      @if (currentId() === t.id && isPlaying()) {
+        <span class="flex items-end gap-[2px] h-4">
+          <span class="eq-bar w-[3px] h-4 bg-[#1ed760]" style="animation-delay: 0s"></span>
+          <span class="eq-bar w-[3px] h-4 bg-[#1ed760]" style="animation-delay: 0.25s"></span>
+          <span class="eq-bar w-[3px] h-4 bg-[#1ed760]" style="animation-delay: 0.5s"></span>
+        </span>
+      } @else {
+        <span class="group-hover:hidden">{{ i + 1 }}</span>
+        <svg viewBox="0 0 24 24" class="w-4 h-4 text-white hidden group-hover:block" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+      }
+    </span>
+    <div class="flex items-center gap-3 min-w-0">
+      @if (t.coverUrl; as url) {
+        <img [src]="url" [alt]="t.title" class="w-10 h-10 rounded object-cover shrink-0" />
+      } @else {
+        <div [class]="'w-10 h-10 rounded flex items-center justify-center text-lg shrink-0 bg-gradient-to-br ' + t.gradient">
+          {{ t.emoji }}
+        </div>
+      }
+      <div class="min-w-0">
+        <p class="text-[15px] truncate">{{ t.title }} @if (t.explicit) { <span class="ml-1 text-[10px] align-middle bg-white/20 text-white rounded-sm px-1 py-px">E</span> }</p>
+        <p class="text-sm text-[#b3b3b3] truncate"><app-artist-links [credit]="t.artist" /></p>
+      </div>
+    </div>
+    <span class="hidden lg:block text-sm text-[#b3b3b3] tabular-nums">{{ uploadedOn(t) }}</span>
+    <span class="hidden sm:block text-sm text-[#b3b3b3] text-right tabular-nums">{{ count(t.plays) }}</span>
+    <span class="flex justify-center">
+      @if (downloads.isDownloading(t.id)) {
+        <span title="Downloading…" class="w-8 h-8 flex items-center justify-center">
+          <svg viewBox="0 0 24 24" class="w-4 h-4 text-[#b3b3b3] animate-spin" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" /></svg>
+        </span>
+      } @else if (downloads.isDownloaded(t.id)) {
+        <button (click)="download($event, t)" title="Download again"
+          class="w-8 h-8 rounded-full flex items-center justify-center text-[#1ed760] hover:bg-white/10 transition">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+        </button>
+      } @else if (downloads.canDownload(t)) {
+        <button (click)="download($event, t)" title="Download to this device"
+          class="w-8 h-8 rounded-full flex items-center justify-center text-[#b3b3b3] hover:text-white hover:bg-white/10 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16" /></svg>
+        </button>
+      } @else {
+        <span title="No audio file available" class="w-8 h-8 flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100">
+          <svg viewBox="0 0 24 24" class="w-4 h-4 text-[#535353]" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 19h16" /></svg>
+        </span>
+      }
+    </span>
+    <span class="flex justify-center">
+      <button (click)="toggleLike($event, t.id)" [title]="isLiked(t.id) ? 'Remove from Liked Songs' : 'Add to Liked Songs'"
+        [class]="isLiked(t.id)
+          ? 'w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition'
+          : 'w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100'">
+        @if (isLiked(t.id)) {
+          <svg viewBox="0 0 24 24" class="w-4 h-4 text-[#1ed760]" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        } @else {
+          <svg viewBox="0 0 24 24" class="w-4 h-4 text-[#b3b3b3] hover:text-white" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        }
+      </button>
+    </span>
+    <span class="text-sm text-[#b3b3b3] text-right tabular-nums">{{ fmt(t.duration) }}</span>
+  </div>
+} @empty {
+  <div class="text-center py-10 text-[#b3b3b3]">
+    @if (filtering()) {
+      <p class="font-bold text-white">No songs match these filters</p>
+      <button (click)="reset()" class="text-sm underline hover:text-white mt-1">Clear filters</button>
+    } @else {
+      <p>No songs yet.</p>
+    }
+  </div>
+}

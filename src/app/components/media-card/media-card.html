@@ -16,6 +16,10 @@
   </div>
   <div class="min-h-[3.2rem]">
     <p class="text-[15px] font-bold text-white truncate">{{ title }}</p>
-    <p class="text-sm text-[#b3b3b3] line-clamp-2 leading-snug mt-1">{{ subtitle }}</p>
+    @if (kind === 'track') {
+      <p class="text-sm text-[#b3b3b3] line-clamp-2 leading-snug mt-1"><app-artist-links [credit]="trackArtist" /> • {{ trackAlbum }}</p>
+    } @else {
+      <p class="text-sm text-[#b3b3b3] line-clamp-2 leading-snug mt-1">{{ subtitle }}</p>
+    }
   </div>
 </a>

@@ -31,7 +31,7 @@ export class Downloads {
       artist: rec.artist,
       album: rec.album,
       duration: rec.duration,
-      plays: rec.plays,
+      plays: typeof rec.plays === 'number' ? rec.plays : 0,
       gradient: rec.gradient,
       emoji: rec.emoji,
       coverUrl: rec.coverUrl,

@@ -1,0 +1,47 @@
+@if (artist(); as a) {
+  <div class="pb-10">
+    <!-- Header: avatar, name, monthly listeners -->
+    <div [class]="'flex flex-col sm:flex-row items-start sm:items-end gap-6 px-6 pt-10 pb-6 bg-gradient-to-b ' + a.gradient + ' to-[#121212]/0 rounded-t-lg'">
+      <div class="w-40 h-40 sm:w-56 sm:h-56 shrink-0 rounded-full overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.6)]">
+        @if (a.coverUrl; as url) {
+          <img [src]="url" [alt]="a.name" class="w-full h-full object-cover" />
+        } @else {
+          <div [class]="'w-full h-full flex items-center justify-center text-7xl sm:text-8xl bg-gradient-to-br ' + a.gradient">
+            {{ a.emoji }}
+          </div>
+        }
+      </div>
+      <div class="min-w-0">
+        <p class="text-sm font-medium">Artist</p>
+        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none my-3 break-words">{{ a.name }}</h1>
+        <p class="text-sm sm:text-base">{{ listeners() }} monthly listeners</p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-5 px-6 py-4">
+      <button (click)="playAll()" [disabled]="!songs().length" [title]="playingHere() ? 'Pause' : 'Play'"
+        class="w-14 h-14 rounded-full bg-[#1ed760] text-black flex items-center justify-center hover:scale-105 hover:bg-[#1fdf64] transition disabled:opacity-40 disabled:hover:scale-100">
+        @if (playingHere()) {
+          <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+        } @else {
+          <svg viewBox="0 0 24 24" class="w-7 h-7 translate-x-[2px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+        }
+      </button>
+    </div>
+
+    <!-- Songs -->
+    <div class="px-6">
+      <h2 class="text-xl md:text-2xl font-extrabold mb-4">Songs</h2>
+      <app-track-list [tracks]="songs()" [source]="source()" />
+    </div>
+  </div>
+} @else if (!music.loaded()) {
+  <div class="p-10 text-center text-[#b3b3b3]">Loading…</div>
+} @else {
+  <div class="p-10 text-center">
+    <p class="text-2xl mb-2">🎤</p>
+    <p class="font-bold">Artist not found</p>
+    <a routerLink="/" class="text-sm text-[#b3b3b3] hover:text-white underline">Go home</a>
+  </div>
+}

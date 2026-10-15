@@ -13,6 +13,7 @@ const express = require('express');
 const cors = require('cors');
 const { createAuthRouter, requireAuth } = require('./auth');
 const { createAdminRouter } = require('./admin');
+const { readPlays, playCounts, withPlays, buildArtists } = require('./catalog');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,10 +34,11 @@ function readDb() {
 }
 
 // Playlists store song ids (trackIds); resolve them to full song objects.
-function withTracks(db, playlist) {
+function withTracks(db, playlist, counts) {
   const tracks = (playlist.trackIds || [])
     .map((id) => db.songs.find((s) => s.id === id))
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((s) => withPlays(s, counts));
   return { ...playlist, tracks };
 }
 
@@ -48,31 +50,34 @@ app.use('/api/admin', createAdminRouter());
 
 // ---- Songs (read-only) ----
 app.get('/api/songs', (_req, res) => {
-  res.json(readDb().songs);
+  const counts = playCounts(readPlays());
+  res.json(readDb().songs.map((s) => withPlays(s, counts)));
 });
 
 app.get('/api/songs/:id', (req, res) => {
   const song = readDb().songs.find((s) => s.id === req.params.id);
   if (!song) return res.status(404).json({ error: 'Song not found' });
-  res.json(song);
+  res.json(withPlays(song, playCounts(readPlays())));
 });
 
 // ---- Playlists (read-only) ----
 app.get('/api/playlists', (_req, res) => {
   const db = readDb();
-  res.json(db.playlists.map((p) => withTracks(db, p)));
+  const counts = playCounts(readPlays());
+  res.json(db.playlists.map((p) => withTracks(db, p, counts)));
 });
 
 app.get('/api/playlists/:id', (req, res) => {
   const db = readDb();
   const playlist = db.playlists.find((p) => p.id === req.params.id);
   if (!playlist) return res.status(404).json({ error: 'Playlist not found' });
-  res.json(withTracks(db, playlist));
+  res.json(withTracks(db, playlist, playCounts(readPlays())));
 });
 
 // ---- Artists (read-only) ----
+// Admin records + every artist credited on a song, with real monthly listeners.
 app.get('/api/artists', (_req, res) => {
-  res.json(readDb().artists || []);
+  res.json(buildArtists(readDb(), readPlays()));
 });
 
 // ---- Health check ----

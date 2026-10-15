@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ARTISTS, PLAYLISTS, TRACKS, formatTime } from '../data/music-data';
+import { formatTime } from '../data/music-data';
+import { ARTISTS, PLAYLISTS, TRACKS } from '../../testing/fixtures';
 import { PlayerService } from './player.service';
 
 describe('formatTime', () => {
@@ -31,6 +32,7 @@ describe('PlayerService', () => {
 
   beforeEach(() => {
     player = new PlayerService();
+    player.setLibrary(TRACKS); // radio fallback pool
   });
 
   afterEach(() => player.destroy());
@@ -103,6 +105,42 @@ describe('PlayerService', () => {
     expect(player.currentTrack()?.id).not.toBe(queue[1].id);
   });
 
+  it('lists the rest of a playlist under "Next from" and keeps the source while advancing', () => {
+    const queue = TRACKS.slice(0, 3);
+    const source = { type: 'playlist' as const, id: 'p1', name: 'My Mix' };
+    player.playTrack(queue[0], queue, source);
+    expect(player.nextFromSource().map((t) => t.id)).toEqual([queue[1].id, queue[2].id]);
+    expect(player.nextUp()).toEqual([]);
+    player.next();
+    expect(player.queueSource()).toEqual(source);
+    expect(player.nextFromSource().map((t) => t.id)).toEqual([queue[2].id]);
+  });
+
+  it('shows only "Next up" once the source queue is used up, and radio plays the first listed song', () => {
+    const queue = TRACKS.slice(0, 2);
+    player.playTrack(queue[1], queue, { type: 'artist', id: 'a1', name: 'Someone' });
+    expect(player.nextFromSource()).toEqual([]);
+    const upcoming = player.nextUp()[0];
+    expect(upcoming).toBeDefined();
+    player.handleTrackEnd();
+    expect(player.currentTrack()?.id).toBe(upcoming.id);
+    expect(player.queueSource()).toBeNull();
+  });
+
+  it('plays without a source show the rest of the queue under "Next up"', () => {
+    const queue = TRACKS.slice(0, 3);
+    player.playTrack(queue[0], queue);
+    expect(player.nextFromSource()).toEqual([]);
+    expect(player.nextUp().slice(0, 2).map((t) => t.id)).toEqual([queue[1].id, queue[2].id]);
+  });
+
+  it('records recently played songs, most recent first', () => {
+    player.playTrack(TRACKS[0], TRACKS);
+    player.next();
+    player.playTrack(TRACKS[0], TRACKS);
+    expect(player.recentlyPlayed().map((t) => t.id)).toEqual([TRACKS[0].id, TRACKS[1].id]);
+  });
+
   it('clamps seeks to the track duration', () => {
     player.playTrack(TRACKS[0], TRACKS);
     player.seekTo(9999);
@@ -146,7 +184,6 @@ describe('PlayerService', () => {
       expect(second.isLiked('t3')).toBe(false);
       second.destroy();
     } finally {
-      // @ts-expect-error jsdom provides the real one in the browser run
       delete (globalThis as Record<string, unknown>)['localStorage'];
     }
   });

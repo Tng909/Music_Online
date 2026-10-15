@@ -16,6 +16,9 @@
       }
       <router-outlet />
     </main>
+    @if (!isAuthRoute() && player.queueOpen()) {
+      <app-queue-panel />
+    }
   </div>
   @if (!isAuthRoute()) {
     <app-playerbar />

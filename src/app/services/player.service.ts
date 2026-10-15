@@ -1,5 +1,5 @@
 import { Injectable, Injector, computed, inject, signal } from '@angular/core';
-import { TRACKS, Track } from '../data/music-data';
+import { QueueSource, Track } from '../data/music-data';
 
 export type RepeatMode = 'off' | 'all' | 'one';
 
@@ -60,18 +60,40 @@ export class PlayerService {
   readonly isShuffled = signal(false);
   readonly repeatMode = signal<RepeatMode>('off');
   /** Liked song ids — persisted to localStorage, survives reload. */
-  readonly likedIds = signal<Set<string>>(loadLikedIds(['t1', 't6']));
+  readonly likedIds = signal<Set<string>>(loadLikedIds([]));
   readonly likedCount = computed(() => this.likedIds().size);
 
   /**
    * Full catalog used for the radio fallback when the queue runs out.
-   * Defaults to the bundled seed; the playerbar syncs the live
-   * backend catalog in via setLibrary() once it loads.
+   * Empty until the playerbar syncs the backend catalog in via setLibrary().
    */
-  private library = signal<Track[]>(TRACKS);
+  private library = signal<Track[]>([]);
   /** Real MP3 duration from metadata — null until loaded / for simulated tracks. */
   private realDuration = signal<number | null>(null);
   private queue = signal<Track[]>([]);
+  /** Playlist / artist the queue was started from; null for anything else (search, radio…). */
+  readonly queueSource = signal<QueueSource | null>(null);
+  /** Pre-picked radio songs, so "Next up" shows exactly what plays after the queue. */
+  private radioPlan = signal<Track[]>([]);
+  /** Most recent first, current song included. */
+  readonly recentlyPlayed = signal<Track[]>([]);
+  /** Right-side queue panel visibility. */
+  readonly queueOpen = signal(false);
+
+  /** Songs left in the queue after the current one. */
+  private queueRest = computed(() => {
+    const q = this.queue();
+    const idx = q.findIndex((t) => t.id === this.currentTrack()?.id);
+    return idx === -1 ? [] : q.slice(idx + 1);
+  });
+  /** "Next from: <source>" — the rest of a playlist / artist queue. */
+  readonly nextFromSource = computed(() => (this.queueSource() ? this.queueRest() : []));
+  /** "Next up" — the rest of a source-less queue, then radio once it runs out. */
+  readonly nextUp = computed(() => {
+    const rest = this.queueRest();
+    if (this.queueSource() && rest.length) return [];
+    return [...(this.queueSource() ? [] : rest), ...this.radioPlan()];
+  });
   private timer: ReturnType<typeof setInterval> | null = null;
 
   /** Real playback when the song has audioUrl (files in public/audio/). */
@@ -98,7 +120,14 @@ export class PlayerService {
   }
 
   setLibrary(tracks: Track[]): void {
-    if (tracks && tracks.length) this.library.set(tracks);
+    if (tracks && tracks.length) {
+      this.library.set(tracks);
+      this.planRadio();
+    }
+  }
+
+  toggleQueuePanel(): void {
+    this.queueOpen.update((v) => !v);
   }
 
   /** Stop the fallback ticker + audio (used in tests / teardown). */
@@ -114,10 +143,29 @@ export class PlayerService {
     if (this.audio) this.audio.pause();
   }
 
-  playTrack(track: Track, context: Track[] = []): void {
+  /** Start a song from the UI. `source` labels the queue ("Next from: …"). */
+  playTrack(track: Track, context: Track[] = [], source: QueueSource | null = null): void {
     if (context.length) this.queue.set(context);
     else if (!this.queue().length) this.queue.set([track]);
+    this.queueSource.set(context.length ? source : null);
+    this.start(track);
+  }
+
+  /** Jump to a song listed in the queue panel. */
+  playFromQueue(track: Track): void {
+    if (this.queue().some((t) => t.id === track.id)) {
+      this.start(track);
+      return;
+    }
+    // A radio pick: it joins the queue, which no longer belongs to a source.
+    this.queue.update((q) => [...q, track]);
+    this.queueSource.set(null);
+    this.start(track);
+  }
+
+  private start(track: Track): void {
     this.currentTrack.set(track);
+    this.recentlyPlayed.update((list) => [track, ...list.filter((t) => t.id !== track.id)].slice(0, 30));
     this.progress.set(0);
     this.realDuration.set(null);
     this.isPlaying.set(true);
@@ -139,6 +187,7 @@ export class PlayerService {
     this.applyAudioState();
     this.syncMediaSession();
     this.reportPlay(track.id);
+    this.planRadio();
   }
 
   /** Accurate play event + heartbeat (drives admin dashboard + live count). */
@@ -198,11 +247,11 @@ export class PlayerService {
     if (!q.length) return;
     const idx = q.findIndex((x) => x.id === cur.id);
     if (idx <= 0) {
-      if (this.repeatMode() === 'all') this.playTrack(q[q.length - 1], q);
+      if (this.repeatMode() === 'all') this.start(q[q.length - 1]);
       else this.restartCurrent();
       return;
     }
-    this.playTrack(q[idx - 1], q);
+    this.start(q[idx - 1]);
   }
 
   /** Called when a track plays to the end (audio `ended` event or ticker). */
@@ -270,17 +319,17 @@ export class PlayerService {
       }
       let pick = Math.floor(Math.random() * q.length);
       if (q[pick].id === cur.id) pick = (pick + 1) % q.length;
-      this.playTrack(q[pick], q);
+      this.start(q[pick]);
       return;
     }
     const idx = q.findIndex((x) => x.id === cur.id);
     const atEnd = idx === -1 || idx === q.length - 1;
     if (!atEnd) {
-      this.playTrack(q[idx + 1], q);
+      this.start(q[idx + 1]);
       return;
     }
     if (this.repeatMode() === 'all') {
-      this.playTrack(q[0], q);
+      this.start(q[0]);
       return;
     }
     // Queue exhausted → radio: random song from the database, forever.
@@ -300,13 +349,33 @@ export class PlayerService {
     this.applyAudioState();
   }
 
-  /** Radio fallback: random library track (never the one just played). */
+  /** Radio fallback: the next pre-planned library track (never the one just played). */
   private playRadio(excludeId: string | null): void {
-    const pool = this.library().length ? this.library() : TRACKS;
+    const pool = this.library();
+    if (!pool.length) {
+      this.isPlaying.set(false);
+      this.applyAudioState();
+      this.syncLive();
+      return;
+    }
+    const planned = this.radioPlan().find((t) => t.id !== excludeId);
     const candidates = excludeId ? pool.filter((t) => t.id !== excludeId) : pool;
     const list = candidates.length ? candidates : pool;
-    const pick = list[Math.floor(Math.random() * list.length)];
-    this.playTrack(pick, [...this.queue(), pick]);
+    const pick = planned ?? list[Math.floor(Math.random() * list.length)];
+    this.queue.update((q) => [...q, pick]);
+    this.queueSource.set(null);
+    this.start(pick);
+  }
+
+  /** Shuffle the library (minus what is playing or already queued) into the radio plan. */
+  private planRadio(): void {
+    const skip = new Set([this.currentTrack()?.id, ...this.queueRest().map((t) => t.id)]);
+    const pool = this.library().filter((t) => !skip.has(t.id));
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    this.radioPlan.set(pool.slice(0, 10));
   }
 
   toggleLike(id: string): void {

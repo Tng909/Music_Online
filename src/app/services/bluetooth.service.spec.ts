@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { BluetoothService, BT_SERVICE_UUID } from './bluetooth.service';
 import { PlayerService } from './player.service';
-import { TRACKS } from '../data/music-data';
+import { TRACKS } from '../../testing/fixtures';
 import { ensureTestEnvironment } from '../../testing/setup';
 
 await ensureTestEnvironment();

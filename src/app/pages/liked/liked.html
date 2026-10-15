@@ -70,10 +70,10 @@
             }
             <div class="min-w-0">
               <p class="text-[15px] truncate">{{ t.title }} @if (t.explicit) { <span class="ml-1 text-[10px] align-middle bg-white/20 text-white rounded-sm px-1 py-px">E</span> }</p>
-              <p class="text-sm text-[#b3b3b3] truncate">{{ t.artist }}</p>
+              <p class="text-sm text-[#b3b3b3] truncate"><app-artist-links [credit]="t.artist" /></p>
             </div>
           </div>
-          <span class="hidden sm:block text-sm text-[#b3b3b3] text-right tabular-nums">{{ t.plays }}</span>
+          <span class="hidden sm:block text-sm text-[#b3b3b3] text-right tabular-nums">{{ count(t.plays) }}</span>
           <span class="flex justify-center">
             <button (click)="toggleLike($event, t.id)" [title]="isLiked(t.id) ? 'Remove from Liked Songs' : 'Add to Liked Songs'"
               class="w-8 h-8 rounded-full hidden group-hover:flex items-center justify-center hover:bg-white/10 transition max-sm:flex">

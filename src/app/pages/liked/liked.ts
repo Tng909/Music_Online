@@ -1,13 +1,14 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { formatTime, Track } from '../../data/music-data';
+import { formatCount, formatTime, Track } from '../../data/music-data';
+import { ArtistLinks } from '../../components/artist-links/artist-links';
 import { PlayerService } from '../../services/player.service';
 import { MusicService } from '../../services/music.service';
 import { DownloadService } from '../../services/download.service';
 
 @Component({
   selector: 'app-liked',
-  imports: [RouterLink],
+  imports: [RouterLink, ArtistLinks],
   templateUrl: './liked.html',
 })
 export class Liked {
@@ -16,6 +17,7 @@ export class Liked {
   downloads = inject(DownloadService);
 
   fmt = formatTime;
+  count = formatCount;
   currentId = computed(() => this.player.currentTrack()?.id);
   isPlaying = this.player.isPlaying;
 

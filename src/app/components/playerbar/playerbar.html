@@ -11,7 +11,7 @@
       }
       <div class="min-w-0 hidden xs:block sm:block">
         <p class="text-sm font-medium text-white truncate hover:underline cursor-pointer">{{ t.title }}</p>
-        <p class="text-xs text-[#b3b3b3] truncate hover:underline hover:text-white cursor-pointer">{{ t.artist }}</p>
+        <p class="text-xs text-[#b3b3b3] truncate"><app-artist-links [credit]="t.artist" /></p>
       </div>
       <button (click)="player.toggleLike(t.id)" class="ml-1 shrink-0" [title]="liked() ? 'Remove from Liked Songs' : 'Add to Liked Songs'">
         @if (liked()) {
@@ -96,7 +96,13 @@
   <!-- Right: volume etc -->
   <div class="hidden md:flex items-center gap-3 w-[30%] justify-end">
     <app-bluetooth-control />
-    <button class="text-[#b3b3b3] hover:text-white" title="Queue">☰</button>
+    <button (click)="player.toggleQueuePanel()" title="Queue" aria-label="Queue"
+      [attr.aria-pressed]="player.queueOpen()"
+      [class]="player.queueOpen() ? 'text-[#1ed760]' : 'text-[#b3b3b3] hover:text-white'"
+      class="relative transition">
+      <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h10"/></svg>
+      @if (player.queueOpen()) { <span class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#1ed760]"></span> }
+    </button>
     <button (click)="player.toggleMute()" title="Mute"
       [class]="isMuted() || volume() === 0 ? 'text-red-500 hover:text-red-400' : 'text-[#b3b3b3] hover:text-white'">
       @if (isMuted() || volume() === 0) {

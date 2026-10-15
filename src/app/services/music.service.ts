@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Artist, Playlist, TRACKS, PLAYLISTS, ARTISTS, Track } from '../data/music-data';
+import { Artist, Playlist, Track, splitArtists } from '../data/music-data';
 
 /** Base URL of the Express API (server/index.js). */
 export const API_URL = 'http://localhost:3000/api';
@@ -17,9 +17,9 @@ export const API_URL = 'http://localhost:3000/api';
 export class MusicService {
   private http = inject(HttpClient);
 
-  private songsSignal = signal<Track[]>(TRACKS);
-  private playlistsSignal = signal<Playlist[]>(PLAYLISTS);
-  private artistsSignal = signal<Artist[]>(ARTISTS);
+  private songsSignal = signal<Track[]>([]);
+  private playlistsSignal = signal<Playlist[]>([]);
+  private artistsSignal = signal<Artist[]>([]);
   private loadedSignal = signal(false);
   private backendOkSignal = signal(false);
 
@@ -29,7 +29,10 @@ export class MusicService {
   readonly loaded = this.loadedSignal.asReadonly();
   readonly backendOk = this.backendOkSignal.asReadonly();
 
-  readonly topSongs = computed(() => this.songsSignal().slice(0, 5));
+  /** Most played first (real play counts). */
+  readonly topSongs = computed(() =>
+    [...this.songsSignal()].sort((a, b) => (b.plays ?? 0) - (a.plays ?? 0)).slice(0, 10),
+  );
 
   constructor() {
     void this.load();
@@ -47,7 +50,7 @@ export class MusicService {
       this.artistsSignal.set(artists);
       this.backendOkSignal.set(true);
     } catch {
-      // Backend not running — keep bundled seed data (frontend still usable).
+      // Backend not running — nothing to show (no fake fallback catalog).
       this.backendOkSignal.set(false);
     } finally {
       this.loadedSignal.set(true);
@@ -60,5 +63,24 @@ export class MusicService {
 
   getPlaylist(id: string): Playlist | undefined {
     return this.playlistsSignal().find((p) => p.id === id);
+  }
+
+  getArtist(id: string): Artist | undefined {
+    return this.artistsSignal().find((a) => a.id === id);
+  }
+
+  /** Each name credited on a song, with the artist page id when one exists. */
+  artistLinks(credit: string): { name: string; id: string | null }[] {
+    const byName = new Map(this.artistsSignal().map((a) => [a.name.toLowerCase(), a.id]));
+    return splitArtists(credit).map((name) => ({ name, id: byName.get(name.toLowerCase()) ?? null }));
+  }
+
+  /** Songs an artist is linked to or credited on, in catalog order. */
+  songsByArtist(artist: Artist): Track[] {
+    const ids = new Set(artist.songIds ?? []);
+    const name = artist.name.toLowerCase();
+    return this.songsSignal().filter(
+      (s) => ids.has(s.id) || splitArtists(s.artist).some((n) => n.toLowerCase() === name),
+    );
   }
 }

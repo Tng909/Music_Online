@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Track } from '../../data/music-data';
+import { Artist, Track } from '../../data/music-data';
 import { PlayerService } from '../../services/player.service';
 import { MusicService } from '../../services/music.service';
 import { MediaCard } from '../../components/media-card/media-card';
@@ -41,7 +41,7 @@ export class Search {
 
   results = computed(() => {
     const q = this.query().trim().toLowerCase();
-    if (!q) return { tracks: [] as Track[], playlists: [], artists: [] };
+    if (!q) return { tracks: [] as Track[], playlists: [], artists: [] as Artist[] };
     return {
       tracks: this.music.songs().filter(
         (t) =>
@@ -55,5 +55,14 @@ export class Search {
       artists: this.music.artists().filter((a) => a.name.toLowerCase().includes(q)),
     };
   });
-}
 
+  /** Plays the artist's linked songs, falling back to songs credited to their name. */
+  playArtist(artist: Artist): void {
+    const songs = this.music.songs();
+    const ids = artist.songIds ?? [];
+    const tracks = ids.length
+      ? songs.filter((s) => ids.includes(s.id))
+      : songs.filter((s) => s.artist.toLowerCase() === artist.name.toLowerCase());
+    if (tracks.length) this.player.playTrack(tracks[0], tracks);
+  }
+}

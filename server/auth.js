@@ -156,4 +156,4 @@ function createAuthRouter() {
   return router;
 }
 
-module.exports = { readUsers, writeUsers, publicUser, createAuthRouter, requireAuth, requireAdmin };
+module.exports = { readUsers, writeUsers, publicUser, userFromRequest, createAuthRouter, requireAuth, requireAdmin };

@@ -1,7 +1,18 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, Injector, computed, inject, signal } from '@angular/core';
 import { TRACKS, Track } from '../data/music-data';
 
 export type RepeatMode = 'off' | 'all' | 'one';
+
+type StatsReporter = { reportPlay(id: string): void; heartbeat(id: string): void; stop(): void };
+
+/** Root injector when created by Angular; null when constructed directly (unit tests). */
+function currentInjector(): Injector | null {
+  try {
+    return inject(Injector);
+  } catch {
+    return null;
+  }
+}
 
 const LIKED_STORAGE_KEY = 'music-online-liked-v1';
 
@@ -19,19 +30,23 @@ function loadLikedIds(fallback: string[]): Set<string> {
 
 @Injectable({ providedIn: 'root' })
 export class PlayerService {
-  private stats: { reportPlay(id: string): void; heartbeat(id: string): void } | null | undefined;
-  private resolveStats(): { reportPlay(id: string): void; heartbeat(id: string): void } | null {
+  // Captured at construction: inject() only works synchronously in an injection
+  // context, never inside the async import callback below.
+  private injector = currentInjector();
+  private stats: StatsReporter | null | undefined;
+  private resolveStats(): StatsReporter | null {
     if (this.stats === undefined) {
       this.stats = null; // default: no reporting (tests, backend down)
+      const injector = this.injector;
+      if (!injector) return null;
       // Lazy-load so raw vitest never pulls HttpClient into the spec graph.
       void import('./stats.service')
-        .then(async (m) => {
-          const { inject } = await import('@angular/core');
-          try {
-            this.stats = inject(m.StatsService, { optional: true }) ?? null;
-          } catch {
-            this.stats = null;
-          }
+        .then((m) => {
+          this.stats = injector.get(m.StatsService, null);
+          // Flush the play that triggered loading, then resume live reporting.
+          const cur = this.currentTrack();
+          if (cur && this.isPlaying()) this.stats?.reportPlay(cur.id);
+          this.syncLive();
         })
         .catch(() => undefined);
     }
@@ -131,13 +146,31 @@ export class PlayerService {
 
   private reportPlay(trackId: string): void {
     this.resolveStats()?.reportPlay(trackId);
-    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
-    this.heartbeatTimer = setInterval(() => {
-      if (!this.isPlaying()) return;
-      const cur = this.currentTrack();
-      if (!cur) return;
-      this.resolveStats()?.heartbeat(cur.id);
-    }, 15000);
+    this.syncLive();
+  }
+
+  /**
+   * Live presence: heartbeat while playing, explicit stop on pause, so the
+   * dashboard counts only people actually listening (not merely online).
+   */
+  private syncLive(): void {
+    const stats = this.resolveStats();
+    if (!stats) return;
+    if (this.isPlaying() && this.currentTrack()) {
+      stats.heartbeat(this.currentTrack()!.id);
+      if (!this.heartbeatTimer) {
+        this.heartbeatTimer = setInterval(() => {
+          const cur = this.currentTrack();
+          if (this.isPlaying() && cur) this.resolveStats()?.heartbeat(cur.id);
+        }, 10000);
+      }
+    } else {
+      if (this.heartbeatTimer) {
+        clearInterval(this.heartbeatTimer);
+        this.heartbeatTimer = null;
+      }
+      stats.stop();
+    }
   }
 
   toggle(): void {
@@ -145,6 +178,7 @@ export class PlayerService {
     this.isPlaying.update((v) => !v);
     this.applyAudioState();
     this.syncMediaSession();
+    this.syncLive();
   }
 
   /** Manual next — always advances (repeat-one only affects auto-advance). */

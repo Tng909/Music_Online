@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const multer = require('multer');
-const { readUsers, writeUsers, publicUser, requireAdmin } = require('./auth');
+const { readUsers, writeUsers, publicUser, userFromRequest, requireAdmin } = require('./auth');
 const { readHistory, appendHistory } = require('./history');
 
 const DATA_DIR = path.join(__dirname, 'data');
@@ -384,7 +384,11 @@ function createAdminRouter() {
 
 
   // ---- Play events + live listeners ----
-  const live = new Map(); // userKey -> { trackId, at }
+  // clientId (one per player tab) -> { listener, trackId, at }. `listener` is the
+  // signed-in user id, or the clientId for guests, so one person with two tabs
+  // counts once. Only playing tabs heartbeat; pause / tab close sends /stats/stop.
+  const live = new Map();
+  const isClientId = (v) => typeof v === 'string' && v.length > 0 && v.length <= 64;
 
   router.post('/stats/play', (req, res) => {
     const { trackId } = req.body || {};
@@ -394,16 +398,21 @@ function createAdminRouter() {
     const plays = readPlays();
     plays.push({ trackId, userId, at: isoNow() });
     writeJson(PLAYS_PATH, plays.slice(-20000));
-    live.set(userId === 'anon' ? `anon-${Date.now()}` : userId, { trackId, at: Date.now() });
     res.status(201).end();
   });
 
   router.post('/stats/heartbeat', (req, res) => {
-    const { trackId } = req.body || {};
+    const { trackId, clientId } = req.body || {};
     if (typeof trackId !== 'string' || !trackId) return res.status(400).json({ error: 'trackId is required.' });
-    const auth = req.headers.authorization || '';
-    const userId = auth.startsWith('Bearer ') ? auth.slice(7, 23) : `anon-${Date.now()}`;
-    live.set(userId, { trackId, at: Date.now() });
+    if (!isClientId(clientId)) return res.status(400).json({ error: 'clientId is required.' });
+    const listener = userFromRequest(req)?.user?.id || `guest-${clientId}`;
+    live.set(clientId, { listener, trackId, at: Date.now() });
+    res.status(204).end();
+  });
+
+  router.post('/stats/stop', (req, res) => {
+    const { clientId } = req.body || {};
+    if (isClientId(clientId)) live.delete(clientId);
     res.status(204).end();
   });
 
@@ -412,7 +421,7 @@ function createAdminRouter() {
     for (const [key, v] of live) {
       if (v.at < cutoff) live.delete(key);
     }
-    res.json({ listeners: live.size });
+    res.json({ listeners: new Set([...live.values()].map((v) => v.listener)).size });
   });
 
   router.get('/stats/overview', requireAdmin, (req, res) => {

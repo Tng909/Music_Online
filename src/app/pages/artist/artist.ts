@@ -5,6 +5,7 @@ import { map } from 'rxjs';
 import { QueueSource, formatCount } from '../../data/music-data';
 import { PlayerService } from '../../services/player.service';
 import { MusicService } from '../../services/music.service';
+import { LibraryService } from '../../services/library.service';
 import { TrackList } from '../../components/track-list/track-list';
 
 @Component({
@@ -15,6 +16,7 @@ import { TrackList } from '../../components/track-list/track-list';
 export class ArtistPage {
   player = inject(PlayerService);
   music = inject(MusicService);
+  library = inject(LibraryService);
   private route = inject(ActivatedRoute);
 
   artistId = toSignal(this.route.paramMap.pipe(map((p) => p.get('id') ?? '')), { initialValue: '' });
@@ -28,6 +30,7 @@ export class ArtistPage {
     const a = this.artist();
     return a ? { type: 'artist', id: a.id, name: a.name } : null;
   });
+  following = computed(() => this.library.followedIds().has(this.artistId()));
   listeners = computed(() => formatCount(this.artist()?.monthlyListeners));
   /** True while this artist is what the player is playing from. */
   playingHere = computed(

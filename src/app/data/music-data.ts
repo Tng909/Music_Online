@@ -27,6 +27,9 @@ export interface Playlist {
   coverUrl?: string | null;
   /** Song ids (backend shape); resolved to `tracks` by the API. */
   trackIds?: string[];
+  /** Set on playlists a user created from Your Library. */
+  ownerId?: string | null;
+  ownerName?: string | null;
   createdAt?: string;
 }
 

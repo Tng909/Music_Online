@@ -16,7 +16,8 @@ export class Home {
 
   greeting = signal(this.computeGreeting());
 
-  playlists = this.music.playlists;
+  /** Catalog playlists only — user-created ones live in each user's library. */
+  playlists = computed(() => this.music.playlists().filter((p) => !p.ownerId));
   artists = computed(() =>
     [...this.music.artists()].sort((a, b) => (b.monthlyListeners ?? 0) - (a.monthlyListeners ?? 0)).slice(0, 12),
   );

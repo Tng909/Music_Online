@@ -68,7 +68,7 @@
         } @else {
           <div class="w-16 h-16 rounded-md bg-white/10 flex items-center justify-center text-2xl">🎵</div>
         }
-        <input type="file" accept="image/*" (change)="onCoverFile($event)" class="text-xs text-[#b3b3b3]" />
+        <input type="file" accept="image/*" (change)="onCoverFile($event)" class="text-xs text-[#b3b3b3] file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-1.5 file:text-xs file:font-bold file:text-black file:cursor-pointer hover:file:bg-[#e5e5e5]" />
       </div>
 
       <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Title</label>
@@ -97,7 +97,7 @@
 
       <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mt-4 mb-1">Song (file)</label>
       <div class="flex items-center gap-3">
-        <input type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a" (change)="onAudioFile($event)" class="text-xs text-[#b3b3b3] flex-1" />
+        <input type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a" (change)="onAudioFile($event)" class="text-xs text-[#b3b3b3] file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-1.5 file:text-xs file:font-bold file:text-black file:cursor-pointer hover:file:bg-[#e5e5e5] flex-1" />
         <span class="text-sm font-bold tabular-nums">{{ fmt(fDuration()) }}</span>
       </div>
       @if (fAudioName()) {

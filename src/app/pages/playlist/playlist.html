@@ -13,10 +13,16 @@
       </div>
       <div class="min-w-0">
         <p class="text-sm font-medium">Playlist</p>
-        <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-none my-2">{{ pl.title }}</h1>
+        @if (owned()) {
+          <button type="button" (click)="openEdit()" title="Edit details" class="block text-left">
+            <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-none my-2 break-words">{{ pl.title }}</h1>
+          </button>
+        } @else {
+          <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-none my-2 break-words">{{ pl.title }}</h1>
+        }
         <p class="text-sm text-white/70">{{ pl.description }}</p>
         <p class="text-sm mt-2">
-          <span class="font-bold">MusicOnline</span>
+          <span class="font-bold">{{ pl.ownerName || 'MusicOnline' }}</span>
           <span class="text-white/70"> • {{ pl.likes }} likes • {{ pl.tracks.length }} songs</span>
         </p>
       </div>
@@ -32,13 +38,119 @@
           <svg viewBox="0 0 24 24" class="w-7 h-7 translate-x-[2px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
         }
       </button>
-      <button class="text-[#b3b3b3] hover:text-white text-3xl leading-none" title="More">•••</button>
+      @if (owned()) {
+        <button type="button" (click)="openEdit()" title="Edit songs, name and cover"
+          class="flex items-center gap-2 rounded-full border border-white/30 px-4 py-1.5 text-sm font-bold text-white hover:border-white hover:scale-105 transition">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>
+          Edit
+        </button>
+      } @else {
+        <button type="button" (click)="library.toggleSave(pl.id)"
+          [title]="saved() ? 'Remove from Your Library' : 'Save to Your Library'"
+          [class]="saved() ? 'text-[#1ed760]' : 'text-[#b3b3b3] hover:text-white'"
+          class="w-9 h-9 flex items-center justify-center hover:scale-105 transition">
+          @if (saved()) {
+            <svg viewBox="0 0 24 24" class="w-8 h-8" fill="currentColor"><path d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22zm5.2 8.2-6.4 6.4a1 1 0 0 1-1.4 0l-2.6-2.6a1 1 0 1 1 1.4-1.4l1.9 1.9 5.7-5.7a1 1 0 0 1 1.4 1.4z"/></svg>
+          } @else {
+            <svg viewBox="0 0 24 24" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10.2"/><path stroke-linecap="round" d="M12 7.5v9M7.5 12h9"/></svg>
+          }
+        </button>
+      }
     </div>
 
     <!-- Track list -->
     <div class="px-6">
-      <app-track-list [tracks]="pl.tracks" [source]="source()" />
+      <app-track-list [tracks]="pl.tracks" [source]="source()" [editablePlaylistId]="owned() ? pl.id : null" />
     </div>
+
+    @if (editing()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" (click)="closeEdit()">
+        <div role="dialog" aria-modal="true" aria-labelledby="edit-playlist-title" (click)="$event.stopPropagation()"
+          class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-[#282828] p-6">
+          <h2 id="edit-playlist-title" class="text-xl font-extrabold mb-4">Edit playlist</h2>
+
+          <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="pl-cover">Cover (file)</label>
+          <div class="flex items-center gap-3 mb-3">
+            @if (coverPreview()) {
+              <img [src]="coverPreview()" alt="Cover preview" class="w-16 h-16 rounded-md object-cover" />
+            } @else {
+              <div [class]="'w-16 h-16 rounded-md flex items-center justify-center text-2xl bg-gradient-to-br ' + pl.gradient">{{ pl.emoji }}</div>
+            }
+            <div class="min-w-0">
+              <input id="pl-cover" type="file" accept="image/*" (change)="onCoverFile($event)" class="text-xs text-[#b3b3b3] file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-1.5 file:text-xs file:font-bold file:text-black file:cursor-pointer hover:file:bg-[#e5e5e5] max-w-full" />
+              @if (uploadingCover()) {
+                <p class="text-xs text-[#a7a7a7] mt-1">Uploading…</p>
+              } @else if (draftCoverUrl()) {
+                <button type="button" (click)="draftCoverUrl.set(null); coverPreview.set(null)"
+                  class="mt-2 rounded-full bg-[#e22134] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#f0394b] transition">Remove cover</button>
+              }
+            </div>
+          </div>
+
+          <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="pl-title">Title</label>
+          <input id="pl-title" [ngModel]="draftTitle()" (ngModelChange)="draftTitle.set($event)" placeholder="Playlist title" maxlength="120"
+            (keydown.enter)="saveEdit()"
+            class="w-full rounded-md bg-white/10 text-sm px-3 py-2.5 mb-3 outline-none focus:ring-1 focus:ring-white" />
+
+          <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="pl-desc">Description</label>
+          <input id="pl-desc" [ngModel]="draftDescription()" (ngModelChange)="draftDescription.set($event)" placeholder="What is this playlist about?" maxlength="300"
+            class="w-full rounded-md bg-white/10 text-sm px-3 py-2.5 mb-4 outline-none focus:ring-1 focus:ring-white" />
+
+          <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="pl-songs">Songs in this playlist</label>
+          <div class="rounded-md border border-white/10 p-3">
+            <input id="pl-songs" [ngModel]="trackQuery()" (ngModelChange)="trackQuery.set($event)" placeholder="Search songs to add…"
+              class="w-full rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+            <div class="mt-2 max-h-40 overflow-y-auto flex flex-col gap-1">
+              @for (s of trackMatches(); track s.id) {
+                <button type="button" (click)="toggleTrack(s.id)"
+                  class="flex items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-white/10">
+                  <span class="w-4 text-center text-[#1ed760] font-bold">+</span>
+                  <span class="truncate">{{ s.title }}</span>
+                  <span class="text-xs text-[#a7a7a7] truncate">· {{ s.artist }}</span>
+                </button>
+              } @empty {
+                <p class="text-xs text-[#a7a7a7] px-2 py-1">No more songs match.</p>
+              }
+            </div>
+            @if (pickedTracks().length) {
+              <div class="mt-2 pt-2 border-t border-white/10 flex flex-wrap gap-1.5">
+                @for (s of pickedTracks(); track s.id) {
+                  <span class="flex items-center gap-1 rounded-full bg-[#1ed760]/20 text-[#1ed760] text-xs font-bold px-2.5 py-1">
+                    {{ s.title }}
+                    <button type="button" (click)="toggleTrack(s.id)" class="hover:text-white" [attr.aria-label]="'Remove ' + s.title">✕</button>
+                  </span>
+                }
+              </div>
+            }
+          </div>
+
+          @if (error()) {
+            <p class="text-sm text-[#f37c7c] mt-3" role="alert">{{ error() }}</p>
+          }
+
+          <div class="flex items-center justify-between gap-2 mt-5">
+            @if (confirmingDelete()) {
+              <div class="flex items-center gap-2 text-sm">
+                <span class="text-[#b3b3b3]">Delete for good?</span>
+                <button type="button" (click)="deletePlaylist()" [disabled]="busy()"
+                  class="rounded-full bg-red-500 px-4 py-1.5 font-bold text-black hover:bg-red-400 disabled:opacity-50">Delete</button>
+                <button type="button" (click)="confirmingDelete.set(false)" class="font-bold text-[#b3b3b3] hover:text-white">Keep</button>
+              </div>
+            } @else {
+              <button type="button" (click)="confirmingDelete.set(true)"
+                class="text-sm font-bold text-[#f37c7c] hover:text-red-400">Delete playlist</button>
+              <div class="flex gap-2">
+                <button type="button" (click)="closeEdit()" class="rounded-full px-5 py-2 text-sm font-bold text-[#b3b3b3] hover:text-white">Cancel</button>
+                <button type="button" (click)="saveEdit()" [disabled]="busy() || uploadingCover()"
+                  class="rounded-full bg-white text-black text-sm font-bold px-5 py-2 hover:scale-105 transition disabled:opacity-60">
+                  {{ busy() ? 'Saving…' : 'Save' }}
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
 
     <div class="px-6 mt-8">
       <a routerLink="/" class="text-sm font-bold text-[#b3b3b3] hover:text-white">← Back to Home</a>

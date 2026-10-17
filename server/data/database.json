@@ -85,21 +85,19 @@
   ],
   "playlists": [
     {
-      "id": "your-uploads",
-      "title": "Your Uploads",
-      "description": "Songs added locally to this repository — cover art and audio included.",
-      "gradient": "from-violet-500 via-purple-500 to-indigo-600",
-      "emoji": "📦",
-      "likes": "Made by you",
-      "coverUrl": "/covers/DieWithASmile.jpg",
+      "id": "p_mvc7r1097ace60",
+      "title": "Peak vcl Mấy con vợ biết j???",
+      "description": "Peak ahhhh",
+      "gradient": "from-zinc-700 to-zinc-950",
+      "emoji": "🎧",
+      "likes": "0",
+      "coverUrl": "/covers/1792231592486-ow ow ow.jpg",
       "trackIds": [
-        "s1",
-        "s2",
-        "s3",
-        "s4",
-        "s5"
+        "s4"
       ],
-      "createdAt": "2026-10-14T03:25:08.602Z"
+      "ownerId": "u_e180ce1a095d",
+      "ownerName": "Min",
+      "createdAt": "2026-10-17T09:47:54.969Z"
     }
   ],
   "artists": []

@@ -11,7 +11,11 @@ const express = require('express');
 const multer = require('multer');
 const { readUsers, writeUsers, publicUser, userFromRequest, requireAdmin } = require('./auth');
 const { readHistory, appendHistory } = require('./history');
+<<<<<<< HEAD
 const { albumIdFor } = require('./catalog');
+=======
+const { buildArtists, splitArtists } = require('./catalog');
+>>>>>>> 23115d0fc954786fc23e5336ee0318260cca739c
 
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_PATH = path.join(DATA_DIR, 'database.json');
@@ -201,8 +205,17 @@ function createAdminRouter() {
 
   router.put('/artists/:id', requireAdmin, (req, res) => {
     const db = readDb();
-    const artist = (db.artists || []).find((a) => a.id === req.params.id);
-    if (!artist) return res.status(404).json({ error: 'Artist not found.' });
+    db.artists = db.artists || [];
+    let artist = db.artists.find((a) => a.id === req.params.id);
+    if (!artist) {
+      // Credit-only artist (derived from song credits): save it as a record on first edit.
+      const derived = buildArtists(db, []).find((a) => a.id === req.params.id);
+      if (!derived) return res.status(404).json({ error: 'Artist not found.' });
+      const { monthlyListeners, ...rest } = derived;
+      artist = { ...rest, userId: null, createdAt: isoNow() };
+      db.artists.unshift(artist);
+    }
+    const oldName = artist.name;
     const { name, followers, gradient, emoji, coverUrl, songIds, userId } = req.body || {};
     if (name !== undefined) {
       if (typeof name !== 'string' || !name.trim()) return res.status(400).json({ error: 'Artist name is required.' });
@@ -212,10 +225,31 @@ function createAdminRouter() {
     if (gradient !== undefined) artist.gradient = gradient;
     if (emoji !== undefined) artist.emoji = emoji;
     if (coverUrl !== undefined) artist.coverUrl = coverUrl || null;
-    if (songIds !== undefined) {
-      artist.songIds = Array.isArray(songIds) ? songIds.filter((id) => db.songs.some((s) => s.id === id)) : [];
-    }
     if (userId !== undefined) artist.userId = userId || null;
+
+    // Keep song credits in step with the artist so the public pages agree:
+    // renames rewrite the credit, removed songs drop it, added songs gain it.
+    const same = (a, b) => a.toLowerCase() === b.toLowerCase();
+    const credits = (song, n) => splitArtists(song.artist).some((c) => same(c, n));
+    const setCredit = (song, names) => {
+      song.artist = names.length ? names.join(', ') : 'Unknown Artist';
+    };
+    if (artist.name !== oldName) {
+      for (const song of db.songs) {
+        if (credits(song, oldName)) {
+          setCredit(song, splitArtists(song.artist).map((c) => (same(c, oldName) ? artist.name : c)));
+        }
+      }
+    }
+    if (songIds !== undefined) {
+      const keep = new Set(Array.isArray(songIds) ? songIds.filter((id) => db.songs.some((s) => s.id === id)) : []);
+      for (const song of db.songs) {
+        const credited = credits(song, artist.name);
+        if (keep.has(song.id) && !credited) setCredit(song, [...splitArtists(song.artist), artist.name]);
+        if (!keep.has(song.id) && credited) setCredit(song, splitArtists(song.artist).filter((c) => !same(c, artist.name)));
+      }
+      artist.songIds = [...keep];
+    }
     writeDb(db);
     appendHistory({ actor: req.user.email, action: 'artist.update', entity: artist.id, detail: artist.name });
     res.json(artist);
@@ -533,4 +567,4 @@ function createAdminRouter() {
   return router;
 }
 
-module.exports = { createAdminRouter };
+module.exports = { createAdminRouter, coverUpload };

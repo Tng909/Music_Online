@@ -16,7 +16,11 @@
       "provider": "email",
       "passwordHash": "c99e101fc67c22f4827de39790fdce1a:7e3dc697bd72237d90f8b8c84906eef25b8f76ba6d0cf8401cd5cbb124e44368c6491f3f2f3238fd91237d63a7c25b8f59971be979d6d42288e3c152276096a7",
       "phone": null,
-      "createdAt": "2026-10-12T08:36:08.037Z"
+      "createdAt": "2026-10-12T08:36:08.037Z",
+      "followedArtists": [],
+      "savedPlaylists": [
+        "p_mvc7r1097ace60"
+      ]
     },
     {
       "id": "u_b123c9af9a38",

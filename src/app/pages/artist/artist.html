@@ -13,7 +13,16 @@
       </div>
       <div class="min-w-0">
         <p class="text-sm font-medium">Artist</p>
-        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none my-3 break-words">{{ a.name }}</h1>
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-3 my-3">
+          <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none break-words">{{ a.name }}</h1>
+          <button type="button" (click)="library.toggleFollow(a.id)"
+            [class]="following()
+              ? 'border-[#3b82f6] bg-[#3b82f6] text-white hover:bg-[#2563eb] hover:border-[#2563eb]'
+              : 'border-white/70 text-white hover:border-white hover:scale-105'"
+            class="shrink-0 rounded-full border px-5 py-1.5 text-sm font-bold transition">
+            {{ following() ? 'Followed' : 'Follow' }}
+          </button>
+        </div>
         <p class="text-sm sm:text-base">{{ listeners() }} monthly listeners</p>
       </div>
     </div>

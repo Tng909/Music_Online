@@ -60,4 +60,19 @@
     </div>
   </section>
   }
+
+  <!-- Albums -->
+  @if (albums().length) {
+  <section class="mt-8">
+    <div class="flex items-end justify-between mb-3">
+      <h2 class="text-xl md:text-2xl font-extrabold hover:underline cursor-pointer">Popular albums</h2>
+      <a routerLink="/search" class="text-xs font-bold tracking-widest text-[#b3b3b3] hover:text-white">SHOW ALL</a>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      @for (al of albums(); track al.id) {
+        <app-album-card [album]="al" />
+      }
+    </div>
+  </section>
+  }
 </div>

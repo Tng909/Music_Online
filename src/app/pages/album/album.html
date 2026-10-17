@@ -1,0 +1,55 @@
+@if (album(); as al) {
+  <div class="pb-10">
+    <!-- Header -->
+    <div [class]="'flex flex-col sm:flex-row items-start sm:items-end gap-6 px-6 pt-10 pb-6 bg-gradient-to-b ' + al.gradient + ' to-[#121212]/0 rounded-t-lg'">
+      <div class="relative w-40 h-40 sm:w-56 sm:h-56 shrink-0">
+        @if (al.coverUrl; as url) {
+          <img [src]="url" [alt]="al.title" class="w-full h-full object-cover rounded-lg shadow-2xl" />
+        } @else {
+          <div [class]="'w-full h-full rounded-lg flex items-center justify-center text-7xl sm:text-8xl shadow-2xl bg-gradient-to-br ' + al.gradient">
+            {{ al.emoji }}
+          </div>
+        }
+      </div>
+      <div class="min-w-0">
+        <p class="text-sm font-medium">Album</p>
+        <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-none my-2">{{ al.title }}</h1>
+        <p class="text-sm text-white/70">{{ al.artist }}</p>
+        <p class="text-sm mt-2">
+          <span class="font-bold">MusicOnline</span>
+          <span class="text-white/70"> • {{ al.plays }} plays • {{ al.tracks.length }} song{{ al.tracks.length === 1 ? '' : 's' }}</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-5 px-6 py-4">
+      <button (click)="playAll()" title="Play"
+        class="w-14 h-14 rounded-full bg-[#1ed760] text-black flex items-center justify-center hover:scale-105 hover:bg-[#1fdf64] transition">
+        @if (playingHere()) {
+          <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+        } @else {
+          <svg viewBox="0 0 24 24" class="w-7 h-7 translate-x-[2px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+        }
+      </button>
+      <button class="text-[#b3b3b3] hover:text-white text-3xl leading-none" title="More">•••</button>
+    </div>
+
+    <!-- Track list -->
+    <div class="px-6">
+      <app-track-list [tracks]="tracks()" [source]="source()" />
+    </div>
+
+    <div class="px-6 mt-8">
+      <a routerLink="/" class="text-sm font-bold text-[#b3b3b3] hover:text-white">← Back to Home</a>
+    </div>
+  </div>
+} @else if (!music.loaded()) {
+  <div class="p-10 text-center text-[#b3b3b3]">Loading…</div>
+} @else {
+  <div class="p-10 text-center">
+    <p class="text-2xl mb-2">💿</p>
+    <p class="font-bold">Album not found</p>
+    <a routerLink="/" class="text-sm text-[#b3b3b3] hover:text-white underline">Go home</a>
+  </div>
+}

@@ -1,0 +1,51 @@
+<div class="max-w-2xl mx-auto px-6 py-10">
+  <h1 class="text-3xl font-black tracking-tight mb-1">{{ heading() }}</h1>
+  <p class="text-sm text-[#b3b3b3] mb-6">Pick songs from the catalog — you can add or remove more later.</p>
+
+  <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Name</label>
+  <input [ngModel]="title()" (ngModelChange)="title.set($event)"
+    [placeholder]="heading().replace('Create ', 'My ')"
+    class="w-full rounded-md bg-white/10 text-sm px-3 py-2.5 mb-4 outline-none focus:ring-1 focus:ring-white" />
+
+  <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Add songs</label>
+  <div class="rounded-md border border-white/10 p-3 mb-4">
+    <input [ngModel]="query()" (ngModelChange)="query.set($event)"
+      placeholder="Search title, artist or album…"
+      class="w-full rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+    <div class="mt-2 max-h-64 overflow-y-auto flex flex-col gap-1">
+      @for (s of songMatches(); track s.id) {
+        <button type="button" (click)="togglePick(s.id)"
+          class="flex items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-white/10">
+          <span class="w-4 text-center text-[#1ed760] font-bold">+</span>
+          <span class="truncate font-bold">{{ s.title }}</span>
+          <span class="text-xs text-[#a7a7a7] truncate">· {{ s.artist }} · {{ s.album }}</span>
+        </button>
+      } @empty {
+        <p class="text-xs text-[#a7a7a7] px-2 py-1">No more songs match.</p>
+      }
+    </div>
+    @if (pickedSongs().length) {
+      <div class="mt-2 pt-2 border-t border-white/10 flex flex-wrap gap-1.5">
+        @for (s of pickedSongs(); track s.id) {
+          <span class="flex items-center gap-1 rounded-full bg-[#1ed760]/20 text-[#1ed760] text-xs font-bold px-2.5 py-1">
+            {{ s.title }}
+            <button type="button" (click)="togglePick(s.id)" class="hover:text-white" aria-label="Remove song">✕</button>
+          </span>
+        }
+      </div>
+    }
+  </div>
+
+  @if (error()) {
+    <p class="text-sm text-[#f37c7c] mb-3">{{ error() }}</p>
+  }
+
+  <div class="flex justify-end gap-2">
+    <button type="button" (click)="cancel()"
+      class="rounded-full px-5 py-2 text-sm font-bold text-[#b3b3b3] hover:text-white">Cancel</button>
+    <button type="button" (click)="save()" [disabled]="saving()"
+      class="rounded-full bg-white text-black text-sm font-bold px-5 py-2 hover:scale-105 transition disabled:opacity-60">
+      {{ saving() ? 'Creating…' : heading() }}
+    </button>
+  </div>
+</div>

@@ -33,7 +33,7 @@
       "name": "Admin",
       "provider": "email",
       "role": "admin",
-      "passwordHash": "28d09719ff2b8ba178323177339f6146:4a7171b0e56bd2d82dcd340d9fd672793fef2088f005a88da8a94d5e3d74fa92a7d241a957bd0f8cb111d323f20dbaa351fd43ab70b8c5fc2f0297c3923f476c",
+      "passwordHash": "3e0b5eb625be4d25c3b36d3200cea113:32e8a7e821081b23cd513dd9b6f4e2f7017b677f284952ba1d796970be686030ac5f0d93de9bcdfeb80e9f20c790ee77e12281ce90fe1946d30d5b8a7097d480",
       "phone": null,
       "createdAt": "2026-10-14T00:58:00.000Z"
     }

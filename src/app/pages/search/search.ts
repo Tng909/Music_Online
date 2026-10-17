@@ -1,10 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Artist, Track } from '../../data/music-data';
+import { Album, Artist, Track } from '../../data/music-data';
 import { PlayerService } from '../../services/player.service';
 import { MusicService } from '../../services/music.service';
 import { MediaCard } from '../../components/media-card/media-card';
 import { ArtistCard } from '../../components/artist-card/artist-card';
+import { AlbumCard } from '../../components/album-card/album-card';
 
 const BROWSE_CARDS = [
   { title: 'Podcasts', gradient: 'from-purple-700 to-indigo-900', emoji: '🎙️' },
@@ -23,7 +24,7 @@ const BROWSE_CARDS = [
 
 @Component({
   selector: 'app-search',
-  imports: [MediaCard, ArtistCard],
+  imports: [MediaCard, ArtistCard, AlbumCard],
   templateUrl: './search.html',
 })
 export class Search {
@@ -42,7 +43,7 @@ export class Search {
 
   results = computed(() => {
     const q = this.query().trim().toLowerCase();
-    if (!q) return { tracks: [] as Track[], playlists: [], artists: [] as Artist[] };
+    if (!q) return { tracks: [] as Track[], playlists: [], artists: [] as Artist[], albums: [] as Album[] };
     return {
       tracks: this.music.songs().filter(
         (t) =>
@@ -54,6 +55,9 @@ export class Search {
         (p) => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
       ),
       artists: this.music.artists().filter((a) => a.name.toLowerCase().includes(q)),
+      albums: this.music.albums().filter(
+        (a) => a.title.toLowerCase().includes(q) || a.artist.toLowerCase().includes(q),
+      ),
     };
   });
 }

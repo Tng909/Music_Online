@@ -46,6 +46,22 @@ export interface Artist {
   createdAt?: string;
 }
 
+export interface Album {
+  id: string;
+  title: string;
+  artist: string;
+  gradient: string;
+  emoji: string;
+  coverUrl?: string | null;
+  /** Song ids on this album (backend-resolved shape below). */
+  songIds?: string[];
+  /** Resolved tracks, oldest first (backend shape). */
+  tracks: Track[];
+  /** Sum of plays across tracks (computed by the backend). */
+  plays: number;
+  createdAt?: string;
+}
+
 
 export function formatTime(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
@@ -66,9 +82,23 @@ export function splitArtists(credit: string): string[] {
     .filter(Boolean);
 }
 
+/** Personal collection owned by one user: their own playlist / album / folder. */
+export interface UserCollection {
+  id: string;
+  kind: 'playlist' | 'album' | 'folder';
+  title: string;
+  description: string;
+  ownerId: string;
+  gradient: string;
+  emoji: string;
+  coverUrl?: string | null;
+  trackIds: string[];
+  createdAt?: string;
+}
+
 /** Where the current queue came from — shown as "Next from: <name>". */
 export interface QueueSource {
-  type: 'playlist' | 'artist';
+  type: 'playlist' | 'artist' | 'album' | 'collection';
   id: string;
   name: string;
 }

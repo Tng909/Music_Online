@@ -13,13 +13,9 @@ const express = require('express');
 const cors = require('cors');
 const { createAuthRouter, requireAuth } = require('./auth');
 const { createAdminRouter } = require('./admin');
-<<<<<<< HEAD
 const { createUserLibraryRouter } = require('./user-library');
 const { readPlays, playCounts, withPlays, buildArtists, buildAlbums } = require('./catalog');
-=======
 const { createLibraryRouter, followerCounts } = require('./library');
-const { readPlays, playCounts, withPlays, buildArtists } = require('./catalog');
->>>>>>> 23115d0fc954786fc23e5336ee0318260cca739c
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,13 +50,10 @@ app.use('/api/auth', createAuthRouter());
 // ---- Admin: CRUD + uploads + stats + history (admin-only writes) ----
 app.use('/api/admin', createAdminRouter());
 
-<<<<<<< HEAD
 // ---- My library: personal playlists / albums / folders (login required) ----
 app.use('/api/me/collections', createUserLibraryRouter());
-=======
 // ---- Your Library: follows, saved + created playlists (signed-in users) ----
 app.use('/api/library', createLibraryRouter());
->>>>>>> 23115d0fc954786fc23e5336ee0318260cca739c
 
 // ---- Songs (read-only) ----
 app.get('/api/songs', (_req, res) => {

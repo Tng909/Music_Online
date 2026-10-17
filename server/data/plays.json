@@ -1,153 +1,17 @@
 [
   {
-<<<<<<< HEAD
-    "trackId": "s5",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T09:38:53.765Z"
-  },
-  {
-    "trackId": "s4",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T09:39:17.159Z"
-  },
-  {
-    "trackId": "s4",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T09:40:14.058Z"
-  },
-  {
-    "trackId": "s4",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T09:40:15.678Z"
-  },
-  {
-    "trackId": "s_mvc7yeombdddd9",
+    "trackId": "s1",
     "userId": "u_admin000001",
-    "at": "2026-10-17T09:53:42.355Z"
-  },
-  {
-    "trackId": "s_mvc7yeombdddd9",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:00:38.619Z"
+    "at": "2026-10-17T11:10:44.623Z"
   },
   {
     "trackId": "s1",
     "userId": "u_admin000001",
-    "at": "2026-10-17T10:00:40.947Z"
-  },
-  {
-    "trackId": "s2",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:00:42.278Z"
-  },
-  {
-    "trackId": "s3",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:00:44.126Z"
-  },
-  {
-    "trackId": "s4",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:00:45.110Z"
-  },
-  {
-    "trackId": "s2",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:01:09.396Z"
-  },
-  {
-    "trackId": "s3",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:01:11.661Z"
-  },
-  {
-    "trackId": "s1",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:01:14.904Z"
-  },
-  {
-    "trackId": "s1",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:01:17.797Z"
-  },
-  {
-    "trackId": "s_mvc7yeombdddd9",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T10:01:44.701Z"
-  },
-  {
-    "trackId": "s_mvc7yeombdddd9",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T10:01:46.525Z"
-  },
-  {
-    "trackId": "s4",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T10:01:51.779Z"
-  },
-  {
-    "trackId": "s4",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T10:01:56.581Z"
-  },
-  {
-    "trackId": "s4",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T10:01:57.447Z"
-  },
-  {
-    "trackId": "s4",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T10:02:51.810Z"
-  },
-  {
-    "trackId": "s4",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T10:02:53.096Z"
-  },
-  {
-    "trackId": "s4",
-    "userId": "u_b123c9af9a38",
-    "at": "2026-10-17T10:18:31.862Z"
-  },
-  {
-    "trackId": "s1",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:20:11.225Z"
+    "at": "2026-10-17T11:12:47.319Z"
   },
   {
     "trackId": "s_mvc7yeombdddd9",
     "userId": "u_admin000001",
-    "at": "2026-10-17T10:44:58.392Z"
-  },
-  {
-    "trackId": "s1",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:45:18.820Z"
-  },
-  {
-    "trackId": "s2",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:45:19.903Z"
-  },
-  {
-    "trackId": "s3",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:45:20.575Z"
-  },
-  {
-    "trackId": "s4",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:45:21.154Z"
-  },
-  {
-    "trackId": "s5",
-    "userId": "u_admin000001",
-    "at": "2026-10-17T10:45:21.521Z"
-=======
-    "trackId": "s4",
-    "userId": "u_e180ce1a095d",
-    "at": "2026-10-17T10:00:34.667Z"
->>>>>>> 23115d0fc954786fc23e5336ee0318260cca739c
+    "at": "2026-10-17T11:18:38.249Z"
   }
 ]

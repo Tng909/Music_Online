@@ -11,11 +11,7 @@ const express = require('express');
 const multer = require('multer');
 const { readUsers, writeUsers, publicUser, userFromRequest, requireAdmin } = require('./auth');
 const { readHistory, appendHistory } = require('./history');
-<<<<<<< HEAD
-const { albumIdFor } = require('./catalog');
-=======
 const { buildArtists, splitArtists } = require('./catalog');
->>>>>>> 23115d0fc954786fc23e5336ee0318260cca739c
 
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_PATH = path.join(DATA_DIR, 'database.json');

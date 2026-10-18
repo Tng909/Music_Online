@@ -24,7 +24,7 @@
     </div>
   } @else {
     <h1 class="text-xl md:text-2xl font-extrabold mb-1">Results for "{{ query() }}"</h1>
-    <p class="text-sm text-[#b3b3b3] mb-4">{{ results().tracks.length }} songs • {{ results().playlists.length }} playlists • {{ results().artists.length }} artists</p>
+    <p class="text-sm text-[#b3b3b3] mb-4">{{ results().tracks.length }} songs • {{ results().playlists.length }} playlists • {{ results().artists.length }} artists • {{ results().albums.length }} albums</p>
 
     @if (results().tracks.length) {
       <h2 class="text-lg font-extrabold mb-3">Songs</h2>
@@ -42,6 +42,14 @@
         }
       </div>
     }
+    @if (results().albums.length) {
+      <h2 class="text-lg font-extrabold mb-3">Albums</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-8">
+        @for (al of results().albums; track al.id) {
+          <app-album-card [album]="al" />
+        }
+      </div>
+    }
     @if (results().playlists.length) {
       <h2 class="text-lg font-extrabold mb-3">Playlists</h2>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-8">
@@ -50,7 +58,7 @@
         }
       </div>
     }
-    @if (!results().tracks.length && !results().playlists.length && !results().artists.length) {
+    @if (!results().tracks.length && !results().playlists.length && !results().artists.length && !results().albums.length) {
       <div class="text-center py-16">
         <p class="text-4xl mb-3">🔍</p>
         <p class="text-lg font-bold">No results found for "{{ query() }}"</p>

@@ -1,0 +1,34 @@
+{
+  "collections": [
+    {
+      "id": "a_mvcarcm908e345",
+      "kind": "album",
+      "title": "Test",
+      "description": "",
+      "ownerId": "u_admin000001",
+      "gradient": "from-amber-500 to-orange-700",
+      "emoji": "💿",
+      "coverUrl": null,
+      "trackIds": [
+        "s_mvc7yeombdddd9",
+        "s4"
+      ],
+      "createdAt": "2026-10-17T11:12:08.865Z"
+    },
+    {
+      "id": "p_mvcaqmx1629fe2",
+      "kind": "playlist",
+      "title": "test",
+      "description": "",
+      "ownerId": "u_admin000001",
+      "gradient": "from-violet-500 via-purple-500 to-indigo-600",
+      "emoji": "🎧",
+      "coverUrl": null,
+      "trackIds": [
+        "s1",
+        "s3"
+      ],
+      "createdAt": "2026-10-17T11:11:35.557Z"
+    }
+  ]
+}

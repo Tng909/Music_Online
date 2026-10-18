@@ -1,0 +1,84 @@
+@if (collection(); as c) {
+  <div class="pb-10">
+    <div [class]="'flex flex-col sm:flex-row items-start sm:items-end gap-6 px-6 pt-10 pb-6 bg-gradient-to-b ' + c.gradient + ' to-[#121212]/0 rounded-t-lg'">
+      <div [class]="'w-40 h-40 sm:w-56 sm:h-56 shrink-0 rounded-lg flex items-center justify-center text-7xl sm:text-8xl shadow-2xl bg-gradient-to-br ' + c.gradient">
+        {{ c.emoji }}
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-medium">{{ kindLabel() }}</p>
+        @if (!editing()) {
+          <h1 class="text-4xl sm:text-6xl font-black tracking-tight leading-none my-2">{{ c.title }}</h1>
+        } @else {
+          <input [ngModel]="editTitle()" (ngModelChange)="editTitle.set($event)"
+            class="w-full max-w-md rounded-md bg-white/10 text-2xl font-black px-3 py-2 my-2 outline-none focus:ring-1 focus:ring-white" />
+          @if (editError()) {
+            <p class="text-sm text-[#f37c7c]">{{ editError() }}</p>
+          }
+        }
+        <p class="text-sm mt-2">
+          <span class="font-bold">You</span>
+          <span class="text-white/70"> • {{ tracks().length }} song{{ tracks().length === 1 ? '' : 's' }}</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 px-6 py-4">
+      <button (click)="playAll()" title="Play"
+        class="w-14 h-14 rounded-full bg-[#1ed760] text-black flex items-center justify-center hover:scale-105 hover:bg-[#1fdf64] transition">
+        @if (playingHere()) {
+          <svg viewBox="0 0 24 24" class="w-7 h-7" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+        } @else {
+          <svg viewBox="0 0 24 24" class="w-7 h-7 translate-x-[2px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+        }
+      </button>
+      @if (!editing()) {
+        <button (click)="startEdit()" class="rounded-full border border-white/20 px-4 py-1.5 text-sm font-bold text-white hover:border-white">Rename</button>
+      } @else {
+        <button (click)="saveEdit()" class="rounded-full bg-white px-4 py-1.5 text-sm font-bold text-black hover:scale-105">Save</button>
+        <button (click)="editing.set(false)" class="text-sm font-bold text-[#b3b3b3] hover:text-white">Cancel</button>
+      }
+      <button (click)="addOpen.set(!addOpen())" class="rounded-full border border-white/20 px-4 py-1.5 text-sm font-bold text-white hover:border-white">
+        {{ addOpen() ? 'Close song search' : 'Add songs' }}
+      </button>
+      <button (click)="deleteCollection()" class="text-sm font-bold text-[#f37c7c] hover:text-red-400">Delete</button>
+    </div>
+
+    @if (addOpen()) {
+      <div class="mx-6 mb-4 rounded-md border border-white/10 p-3">
+        <input [ngModel]="addQuery()" (ngModelChange)="addQuery.set($event)"
+          placeholder="Search title, artist or album…"
+          class="w-full rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+        @if (addError()) {
+          <p class="text-sm text-[#f37c7c] mt-2">{{ addError() }}</p>
+        }
+        <div class="mt-2 max-h-64 overflow-y-auto flex flex-col gap-1">
+          @for (s of addMatches(); track s.id) {
+            <button type="button" (click)="addSong(s.id)" [disabled]="addBusy()"
+              class="flex items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-white/10 disabled:opacity-50">
+              <span class="w-4 text-center text-[#1ed760] font-bold">+</span>
+              <span class="truncate font-bold">{{ s.title }}</span>
+              <span class="text-xs text-[#a7a7a7] truncate">· {{ s.artist }} · {{ s.album }}</span>
+            </button>
+          } @empty {
+            <p class="text-xs text-[#a7a7a7] px-2 py-1">No more songs match — everything is already in here.</p>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="px-6">
+      <app-track-list [tracks]="tracks()" [source]="source()" />
+    </div>
+
+    <div class="px-6 mt-8">
+      <a routerLink="/" class="text-sm font-bold text-[#b3b3b3] hover:text-white">← Back to Home</a>
+    </div>
+  </div>
+} @else {
+  <div class="p-10 text-center">
+    <p class="text-2xl mb-2">📁</p>
+    <p class="font-bold">Not found</p>
+    <p class="text-sm text-[#b3b3b3]">It may belong to another account, or the server restarted your session.</p>
+    <a routerLink="/" class="text-sm text-[#b3b3b3] hover:text-white underline">Go home</a>
+  </div>
+}

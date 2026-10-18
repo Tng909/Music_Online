@@ -20,6 +20,7 @@ export interface StatsOverview {
   playlists: number;
   songs: number;
   artists: number;
+  albums: number;
 }
 
 export interface HistoryItem {
@@ -83,6 +84,15 @@ export class AdminService {
   }
   deleteArtist(id: string): Promise<void> {
     return this.del(`/artists/${id}`);
+  }
+  createAlbum(body: unknown): Promise<unknown> {
+    return this.post('/albums', body);
+  }
+  updateAlbum(id: string, body: unknown): Promise<unknown> {
+    return this.put(`/albums/${id}`, body);
+  }
+  deleteAlbum(id: string): Promise<void> {
+    return this.del(`/albums/${id}`);
   }
   createPlaylist(body: unknown): Promise<unknown> {
     return this.post('/playlists', body);

@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Artist, Playlist, Track, splitArtists } from '../data/music-data';
+import { Artist, Album, Playlist, Track, splitArtists } from '../data/music-data';
 
 /** Base URL of the Express API (server/index.js). */
 export const API_URL = 'http://localhost:3000/api';
@@ -20,12 +20,14 @@ export class MusicService {
   private songsSignal = signal<Track[]>([]);
   private playlistsSignal = signal<Playlist[]>([]);
   private artistsSignal = signal<Artist[]>([]);
+  private albumsSignal = signal<Album[]>([]);
   private loadedSignal = signal(false);
   private backendOkSignal = signal(false);
 
   readonly songs = this.songsSignal.asReadonly();
   readonly playlists = this.playlistsSignal.asReadonly();
   readonly artists = this.artistsSignal.asReadonly();
+  readonly albums = this.albumsSignal.asReadonly();
   readonly loaded = this.loadedSignal.asReadonly();
   readonly backendOk = this.backendOkSignal.asReadonly();
 
@@ -40,14 +42,16 @@ export class MusicService {
 
   async load(): Promise<void> {
     try {
-      const [songs, playlists, artists] = await Promise.all([
+      const [songs, playlists, artists, albums] = await Promise.all([
         firstValueFrom(this.http.get<Track[]>(`${API_URL}/songs`)),
         firstValueFrom(this.http.get<Playlist[]>(`${API_URL}/playlists`)),
         firstValueFrom(this.http.get<Artist[]>(`${API_URL}/artists`)),
+        firstValueFrom(this.http.get<Album[]>(`${API_URL}/albums`)),
       ]);
       this.songsSignal.set(songs);
       this.playlistsSignal.set(playlists);
       this.artistsSignal.set(artists);
+      this.albumsSignal.set(albums);
       this.backendOkSignal.set(true);
     } catch {
       // Backend not running — nothing to show (no fake fallback catalog).
@@ -67,6 +71,10 @@ export class MusicService {
 
   getArtist(id: string): Artist | undefined {
     return this.artistsSignal().find((a) => a.id === id);
+  }
+
+  getAlbum(id: string): Album | undefined {
+    return this.albumsSignal().find((a) => a.id === id);
   }
 
   /** Each name credited on a song, with the artist page id when one exists. */

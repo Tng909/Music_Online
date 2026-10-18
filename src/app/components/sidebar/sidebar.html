@@ -16,12 +16,33 @@
   <!-- Library -->
   <div class="bg-[#121212] rounded-lg flex-1 flex flex-col min-h-0">
     <div class="flex items-center justify-between px-4 pt-4 pb-2">
-      <h2 class="text-[#b3b3b3] font-bold text-sm">Your Library</h2>
-      <button type="button" (click)="createPlaylist()" title="Create playlist" aria-label="Create playlist"
+      <button class="flex items-center gap-3 text-[#b3b3b3] hover:text-white transition-colors font-bold text-sm">
+        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M14.5 2.134a1 1 0 0 1 1 0l6 3.464a1 1 0 0 1 .5.866V21a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-3h-2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6.197c0-.191.052-.378.15-.54l7.923-10.53a1 1 0 0 1 .85-.434h1.577zM14.5 9.866V4.65l-6.923 9.204V20h4v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1-1v-3h2V9.866h-3.5zM16 14h3v6h-3v-6z"/></svg>
+        Your Library
+      </button>
+      <button title="Create playlist"
+        (click)="toggleMenu()"
         class="w-8 h-8 rounded-full flex items-center justify-center text-[#b3b3b3] hover:text-white hover:bg-white/10 transition">
         <span class="text-2xl leading-none font-light">+</span>
       </button>
     </div>
+
+    @if (menuOpen()) {
+      <div class="mx-4 mb-2 rounded-lg bg-[#282828] shadow-2xl overflow-hidden">
+        <button type="button" (click)="openCreate('playlist')"
+          class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-bold text-white hover:bg-white/10 transition">
+          <span class="text-lg">🎧</span> Create playlist
+        </button>
+        <button type="button" (click)="openCreate('album')"
+          class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-bold text-white hover:bg-white/10 transition border-t border-white/5">
+          <span class="text-lg">💿</span> Create album
+        </button>
+        <button type="button" (click)="openCreate('folder')"
+          class="w-full flex items-center gap-3 px-4 py-3 text-left text-sm font-bold text-white hover:bg-white/10 transition border-t border-white/5">
+          <span class="text-lg">📁</span> Create folder
+        </button>
+      </div>
+    }
 
     <div class="flex gap-2 px-4 pb-2">
       @for (f of filters; track f) {
@@ -38,6 +59,38 @@
     <div class="flex-1 overflow-y-auto px-2 pb-2">
       @switch (activeFilter()) {
         @case ('Playlists') {
+          @for (c of mine.playlists(); track c.id) {
+            <a [routerLink]="['/collection', c.id]"
+              class="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 transition-colors group">
+              <div [class]="'w-12 h-12 rounded flex items-center justify-center text-2xl shrink-0 bg-gradient-to-br ' + c.gradient">
+                {{ c.emoji }}
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-white truncate">{{ c.title }}</p>
+                <p class="text-[13px] text-[#b3b3b3] truncate">Playlist • {{ c.trackIds.length }} songs • Made by you</p>
+              </div>
+              <button (click)="playCollection(c.id); $event.preventDefault(); $event.stopPropagation()" title="Play"
+                class="w-8 h-8 rounded-full bg-[#1ed760] text-black hidden group-hover:flex items-center justify-center shrink-0 hover:scale-105">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 translate-x-[1px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+              </button>
+            </a>
+          }
+          @for (c of mine.folders(); track c.id) {
+            <a [routerLink]="['/collection', c.id]"
+              class="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 transition-colors group">
+              <div [class]="'w-12 h-12 rounded flex items-center justify-center text-2xl shrink-0 bg-gradient-to-br ' + c.gradient">
+                {{ c.emoji }}
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-white truncate">{{ c.title }}</p>
+                <p class="text-[13px] text-[#b3b3b3] truncate">Folder • {{ c.trackIds.length }} songs • Made by you</p>
+              </div>
+              <button (click)="playCollection(c.id); $event.preventDefault(); $event.stopPropagation()" title="Play"
+                class="w-8 h-8 rounded-full bg-[#1ed760] text-black hidden group-hover:flex items-center justify-center shrink-0 hover:scale-105">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 translate-x-[1px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+              </button>
+            </a>
+          }
           @for (p of playlists(); track p.id) {
             <a [routerLink]="['/playlist', p.id]"
               class="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 transition-colors group">
@@ -105,10 +158,49 @@
           }
         }
         @case ('Albums') {
-          <div class="m-2 rounded-lg bg-[#1f1f1f] p-4">
-            <p class="text-sm font-bold">No albums yet</p>
-            <p class="text-[13px] text-[#b3b3b3] mt-1">Albums you save will show up here.</p>
-          </div>
+          @for (c of mine.albums(); track c.id) {
+            <a [routerLink]="['/collection', c.id]"
+              class="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 transition-colors group">
+              <div [class]="'w-12 h-12 rounded flex items-center justify-center text-2xl shrink-0 bg-gradient-to-br ' + c.gradient">
+                {{ c.emoji }}
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-white truncate">{{ c.title }}</p>
+                <p class="text-[13px] text-[#b3b3b3] truncate">Album • {{ c.trackIds.length }} songs • Made by you</p>
+              </div>
+              <button (click)="playCollection(c.id); $event.preventDefault(); $event.stopPropagation()" title="Play"
+                class="w-8 h-8 rounded-full bg-[#1ed760] text-black hidden group-hover:flex items-center justify-center shrink-0 hover:scale-105">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 translate-x-[1px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+              </button>
+            </a>
+          }
+          @for (album of albums(); track album.id) {
+            <a [routerLink]="['/album', album.id]"
+              class="flex items-center gap-3 p-2 rounded-md hover:bg-white/10 transition-colors group">
+              @if (album.coverUrl; as url) {
+                <img [src]="url" [alt]="album.title" class="w-12 h-12 rounded object-cover shrink-0" />
+              } @else {
+                <div [class]="'w-12 h-12 rounded flex items-center justify-center text-2xl shrink-0 bg-gradient-to-br ' + album.gradient">
+                  {{ album.emoji }}
+                </div>
+              }
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-white truncate">{{ album.title }}</p>
+                <p class="text-[13px] text-[#b3b3b3] truncate">Album • {{ album.artist }}</p>
+              </div>
+              <button (click)="playAlbum(album.id); $event.preventDefault(); $event.stopPropagation()" title="Play"
+                class="w-8 h-8 rounded-full bg-[#1ed760] text-black hidden group-hover:flex items-center justify-center shrink-0 hover:scale-105">
+                <svg viewBox="0 0 24 24" class="w-4 h-4 translate-x-[1px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+              </button>
+            </a>
+          } @empty {
+            @if (!mine.albums().length) {
+              <div class="m-2 rounded-lg bg-[#1f1f1f] p-4">
+                <p class="text-sm font-bold">No albums yet</p>
+                <p class="text-[13px] text-[#b3b3b3] mt-1">Albums you save will show up here.</p>
+              </div>
+            }
+          }
         }
       }
     </div>

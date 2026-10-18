@@ -13,10 +13,11 @@ const express = require('express');
 const cors = require('cors');
 const { createAuthRouter, requireAuth } = require('./auth');
 const { createAdminRouter } = require('./admin');
+const { createUserLibraryRouter } = require('./user-library');
+const { readPlays, playCounts, withPlays, buildArtists, buildAlbums } = require('./catalog');
 const { createLibraryRouter, followerCounts } = require('./library');
 const { createContactsRouter } = require('./contacts');
 const { createStudioRouter } = require('./studio');
-const { readPlays, playCounts, withPlays, buildArtists } = require('./catalog');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -51,6 +52,8 @@ app.use('/api/auth', createAuthRouter());
 // ---- Admin: CRUD + uploads + stats + history (admin-only writes) ----
 app.use('/api/admin', createAdminRouter());
 
+// ---- My library: personal playlists / albums / folders (login required) ----
+app.use('/api/me/collections', createUserLibraryRouter());
 // ---- Your Library: follows, saved + created playlists (signed-in users) ----
 app.use('/api/library', createLibraryRouter());
 
@@ -94,6 +97,18 @@ app.get('/api/artists', (_req, res) => {
   res.json(buildArtists(readDb(), readPlays()).map((a) => ({ ...a, followers: String(follows.get(a.id) || 0) })));
 });
 
+// ---- Albums (read-only) ----
+// Admin records + every album name credited on a song, with resolved tracks.
+app.get('/api/albums', (_req, res) => {
+  res.json(buildAlbums(readDb(), readPlays()));
+});
+
+app.get('/api/albums/:id', (req, res) => {
+  const album = buildAlbums(readDb(), readPlays()).find((a) => a.id === req.params.id);
+  if (!album) return res.status(404).json({ error: 'Album not found' });
+  res.json(album);
+});
+
 // ---- Health check ----
 app.get('/api/health', (_req, res) => {
   const db = readDb();
@@ -102,6 +117,7 @@ app.get('/api/health', (_req, res) => {
     songs: db.songs.length,
     playlists: db.playlists.length,
     artists: (db.artists || []).length,
+    albums: (db.albums || []).length,
   });
 });
 

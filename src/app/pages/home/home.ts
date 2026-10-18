@@ -4,10 +4,11 @@ import { PlayerService } from '../../services/player.service';
 import { MusicService } from '../../services/music.service';
 import { MediaCard } from '../../components/media-card/media-card';
 import { ArtistCard } from '../../components/artist-card/artist-card';
+import { AlbumCard } from '../../components/album-card/album-card';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, MediaCard, ArtistCard],
+  imports: [RouterLink, MediaCard, ArtistCard, AlbumCard],
   templateUrl: './home.html',
 })
 export class Home {
@@ -21,6 +22,7 @@ export class Home {
   artists = computed(() =>
     [...this.music.artists()].sort((a, b) => (b.monthlyListeners ?? 0) - (a.monthlyListeners ?? 0)).slice(0, 12),
   );
+  albums = computed(() => [...this.music.albums()].slice(0, 12));
   backendOk = this.music.backendOk;
 
   quickPicks = computed(() => this.playlists().slice(0, 6));

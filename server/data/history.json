@@ -70,5 +70,13 @@
     "action": "song.create",
     "entity": "s_mvdesr873dd77a",
     "detail": "Bad Apple!!! — Anira"
+  },
+  {
+    "id": "h_mvc7yeonf885c7",
+    "at": "2026-10-17T09:53:39.287Z",
+    "actor": "admin@ad.com",
+    "action": "song.create",
+    "entity": "s_mvc7yeombdddd9",
+    "detail": "GIRLS' LEGEND U — Unknown Artist"
   }
 ]

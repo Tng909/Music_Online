@@ -5,6 +5,19 @@
   },
   "songs": [
     {
+      "id": "s_mvc7yeombdddd9",
+      "title": "GIRLS' LEGEND U",
+      "artist": "Unknown Artist",
+      "album": "Single",
+      "duration": 291,
+      "gradient": "from-zinc-700 to-zinc-950",
+      "emoji": "🎵",
+      "explicit": false,
+      "coverUrl": "/covers/1792230521772-GIRLS' LEGEND U.jpg",
+      "audioUrl": "/audio/1792230790464-GIRLS' LEGEND U_spotdown.org.mp3",
+      "createdAt": "2026-10-17T09:53:39.286Z"
+    },
+    {
       "id": "s_mvdesr873dd77a",
       "title": "Bad Apple!!!",
       "artist": "Anira",

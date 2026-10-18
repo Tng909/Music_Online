@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Admin backend: songs / artists / playlists CRUD + uploads + users + stats + history.
+ * Admin backend: songs / artists / albums / playlists CRUD + uploads + users + stats + history.
  * JSON-file storage under server/data (committed to git, like the rest of the DB).
  * All write routes require an admin session (see auth.requireAdmin).
  */
@@ -34,7 +34,9 @@ function writeJson(p, value) {
 }
 
 function readDb() {
-  return readJson(DB_PATH, { songs: [], playlists: [], artists: [] });
+  const db = readJson(DB_PATH, { songs: [], playlists: [], artists: [] });
+  if (!Array.isArray(db.albums)) db.albums = [];
+  return db;
 }
 
 function writeDb(db) {
@@ -260,6 +262,68 @@ function createAdminRouter() {
     res.status(204).end();
   });
 
+  // ---- Albums (records for cover/gradient/links; names credited on songs still get a derived entry) ----
+  const validAlbumSongs = (db, songIds) =>
+    Array.isArray(songIds) ? [...new Set(songIds.filter((id) => db.songs.some((s) => s.id === id)))] : [];
+
+  router.post('/albums', requireAdmin, (req, res) => {
+    const { title, artist, gradient, emoji, coverUrl, songIds } = req.body || {};
+    if (typeof title !== 'string' || !title.trim()) {
+      return res.status(400).json({ error: 'Album title is required.' });
+    }
+    const db = readDb();
+    if (db.albums.some((a) => String(a.title || '').toLowerCase() === title.trim().toLowerCase())) {
+      return res.status(409).json({ error: 'An album with this title already exists.' });
+    }
+    const album = {
+      id: albumIdFor(title.trim(), new Set(db.albums.map((a) => a.id))),
+      title: title.trim().slice(0, 120),
+      artist: typeof artist === 'string' && artist.trim() ? artist.trim().slice(0, 240) : 'Unknown Artist',
+      gradient: typeof gradient === 'string' && gradient ? gradient : 'from-zinc-700 to-zinc-950',
+      emoji: typeof emoji === 'string' && emoji ? emoji.slice(0, 8) : '💿',
+      coverUrl: typeof coverUrl === 'string' && coverUrl ? coverUrl.slice(0, 500) : null,
+      songIds: validAlbumSongs(db, songIds),
+      createdAt: isoNow(),
+    };
+    db.albums.unshift(album);
+    writeDb(db);
+    appendHistory({ actor: req.user.email, action: 'album.create', entity: album.id, detail: album.title });
+    res.status(201).json(album);
+  });
+
+  router.put('/albums/:id', requireAdmin, (req, res) => {
+    const db = readDb();
+    const album = db.albums.find((a) => a.id === req.params.id);
+    if (!album) return res.status(404).json({ error: 'Album not found.' });
+    const { title, artist, gradient, emoji, coverUrl, songIds } = req.body || {};
+    if (title !== undefined) {
+      if (typeof title !== 'string' || !title.trim()) return res.status(400).json({ error: 'Album title is required.' });
+      if (db.albums.some((a) => a.id !== album.id && String(a.title || '').toLowerCase() === title.trim().toLowerCase())) {
+        return res.status(409).json({ error: 'An album with this title already exists.' });
+      }
+      album.title = title.trim().slice(0, 120);
+    }
+    if (artist !== undefined) album.artist = String(artist || 'Unknown Artist').slice(0, 240) || 'Unknown Artist';
+    if (gradient !== undefined && gradient) album.gradient = gradient;
+    if (emoji !== undefined && emoji) album.emoji = String(emoji).slice(0, 8);
+    if (coverUrl !== undefined) album.coverUrl = coverUrl || null;
+    if (songIds !== undefined) album.songIds = validAlbumSongs(db, songIds);
+    writeDb(db);
+    appendHistory({ actor: req.user.email, action: 'album.update', entity: album.id, detail: album.title });
+    res.json(album);
+  });
+
+  router.delete('/albums/:id', requireAdmin, (req, res) => {
+    const db = readDb();
+    const idx = db.albums.findIndex((a) => a.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ error: 'Album not found.' });
+    const [removed] = db.albums.splice(idx, 1);
+    writeDb(db);
+    // Songs keep their `album` credit — the entry simply becomes derived again.
+    appendHistory({ actor: req.user.email, action: 'album.delete', entity: removed.id, detail: removed.title });
+    res.status(204).end();
+  });
+
   // ---- Playlists ----
   router.post('/playlists', requireAdmin, (req, res) => {
     const { title, description, gradient, emoji, likes, coverUrl, trackIds } = req.body || {};
@@ -471,6 +535,7 @@ function createAdminRouter() {
       playlists: db.playlists.length,
       songs: db.songs.length,
       artists: (db.artists || []).length,
+      albums: (db.albums || []).length,
     });
   });
 

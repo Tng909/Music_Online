@@ -22,8 +22,12 @@
     <div class="relative">
       <button (click)="toggleMenu(); $event.stopPropagation()" type="button"
         [attr.aria-expanded]="menuOpen()" aria-haspopup="menu" title="Your account"
-        class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm shrink-0 hover:scale-105 transition-transform">
-        {{ avatarLetter() }}
+        class="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm shrink-0 hover:scale-105 transition-transform">
+        @if (user.avatarUrl; as url) {
+          <img [src]="url" alt="" class="w-full h-full object-cover" />
+        } @else {
+          {{ avatarLetter() }}
+        }
       </button>
 
       @if (menuOpen()) {

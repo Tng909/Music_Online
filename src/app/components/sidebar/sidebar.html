@@ -17,7 +17,6 @@
   <div class="bg-[#121212] rounded-lg flex-1 flex flex-col min-h-0">
     <div class="flex items-center justify-between px-4 pt-4 pb-2">
       <button class="flex items-center gap-3 text-[#b3b3b3] hover:text-white transition-colors font-bold text-sm">
-        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M14.5 2.134a1 1 0 0 1 1 0l6 3.464a1 1 0 0 1 .5.866V21a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-3h-2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6.197c0-.191.052-.378.15-.54l7.923-10.53a1 1 0 0 1 .85-.434h1.577zM14.5 9.866V4.65l-6.923 9.204V20h4v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1-1v-3h2V9.866h-3.5zM16 14h3v6h-3v-6z"/></svg>
         Your Library
       </button>
       <button title="Create playlist"
@@ -188,6 +187,10 @@
                 <p class="text-sm font-medium text-white truncate">{{ album.title }}</p>
                 <p class="text-[13px] text-[#b3b3b3] truncate">Album • {{ album.artist }}</p>
               </div>
+              <button (click)="removeAlbum(album.id); $event.preventDefault(); $event.stopPropagation()" title="Remove from Your Library"
+                class="w-8 h-8 rounded-full text-[#b3b3b3] hover:text-white hover:bg-white/10 hidden group-hover:flex items-center justify-center shrink-0">
+                <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" d="M6 12h12"/></svg>
+              </button>
               <button (click)="playAlbum(album.id); $event.preventDefault(); $event.stopPropagation()" title="Play"
                 class="w-8 h-8 rounded-full bg-[#1ed760] text-black hidden group-hover:flex items-center justify-center shrink-0 hover:scale-105">
                 <svg viewBox="0 0 24 24" class="w-4 h-4 translate-x-[1px]" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
@@ -197,7 +200,7 @@
             @if (!mine.albums().length) {
               <div class="m-2 rounded-lg bg-[#1f1f1f] p-4">
                 <p class="text-sm font-bold">No albums yet</p>
-                <p class="text-[13px] text-[#b3b3b3] mt-1">Albums you save will show up here.</p>
+                <p class="text-[13px] text-[#b3b3b3] mt-1">Open an album and press + to add it here.</p>
               </div>
             }
           }

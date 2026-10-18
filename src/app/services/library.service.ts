@@ -8,6 +8,7 @@ import { AuthService } from './auth.service';
 interface LibraryState {
   followedArtists: string[];
   savedPlaylists: string[];
+  savedAlbums: string[];
 }
 
 /**
@@ -24,10 +25,16 @@ export class LibraryService {
 
   readonly activeFilter = signal<'Playlists' | 'Artists' | 'Albums'>('Playlists');
 
-  private state = signal<LibraryState>({ followedArtists: [], savedPlaylists: [] });
+  private state = signal<LibraryState>({ followedArtists: [], savedPlaylists: [], savedAlbums: [] });
 
   readonly followedIds = computed(() => new Set(this.state().followedArtists));
   readonly savedIds = computed(() => new Set(this.state().savedPlaylists));
+  readonly savedAlbumIds = computed(() => new Set(this.state().savedAlbums ?? []));
+
+  /** Albums the user added to Your Library, most recent first. */
+  readonly albums = computed(() =>
+    (this.state().savedAlbums ?? []).map((id) => this.music.getAlbum(id)).filter((a) => !!a),
+  );
 
   /** Saved + created playlists, most recent first. */
   readonly playlists = computed(() =>
@@ -46,7 +53,7 @@ export class LibraryService {
     // Reload whenever the signed-in user changes (login / logout / restore).
     effect(() => {
       if (this.auth.user()) void this.load();
-      else this.state.set({ followedArtists: [], savedPlaylists: [] });
+      else this.state.set({ followedArtists: [], savedPlaylists: [], savedAlbums: [] });
     });
   }
 
@@ -65,6 +72,16 @@ export class LibraryService {
   toggleFollow(artistId: string): Promise<void> {
     const on = this.isFollowing(artistId);
     return this.send(on ? 'DELETE' : 'PUT', `/artists/${encodeURIComponent(artistId)}`, true);
+  }
+
+  isAlbumSaved(albumId: string): boolean {
+    return this.savedAlbumIds().has(albumId);
+  }
+
+  /** Add an album to Your Library, or remove it. */
+  toggleSaveAlbum(albumId: string): Promise<void> {
+    const on = this.isAlbumSaved(albumId);
+    return this.send(on ? 'DELETE' : 'PUT', `/albums/${encodeURIComponent(albumId)}`);
   }
 
   toggleSave(playlistId: string): Promise<void> {

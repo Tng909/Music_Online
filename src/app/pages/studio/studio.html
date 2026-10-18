@@ -105,7 +105,7 @@
       <input [ngModel]="albumQuery()" (ngModelChange)="albumQuery.set($event); albumPager.page.set(1)"
         placeholder="Search album or song…" aria-label="Search albums"
         class="flex-1 min-w-[180px] rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
-      <label title="Folder with 1 cover image + song files (or one sub-folder per song)" class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm font-bold cursor-pointer hover:border-white hover:scale-105 transition focus-within:ring-1 focus-within:ring-white">
+      <label title="Folder with song files (or one sub-folder per song) and up to 1 cover image" class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm font-bold cursor-pointer hover:border-white hover:scale-105 transition focus-within:ring-1 focus-within:ring-white">
         <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
         Album folder
         <input type="file" webkitdirectory multiple (change)="onAlbumFolder($event)" class="sr-only" />
@@ -206,6 +206,9 @@
         }
         <input type="file" accept="image/*" (change)="onCoverFile($event)" class="text-xs text-[#b3b3b3] file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-1.5 file:text-xs file:font-bold file:text-black file:cursor-pointer hover:file:bg-[#e5e5e5]" />
       </div>
+      @if (fCoverAuto()) {
+        <p class="text-[11px] text-[#1ed760] -mt-2 mb-3">Cover taken from the song file. Pick an image to use a different one.</p>
+      }
 
       <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="studio-title">Title</label>
       <input id="studio-title" [ngModel]="fTitle()" (ngModelChange)="onTitleInput($event)" maxlength="120"
@@ -277,7 +280,7 @@
       <div class="flex items-center justify-between gap-3 mb-4">
         <h2 id="studio-album-title" class="text-xl font-extrabold">{{ editingAlbum() ? 'Edit album' : 'Add album' }}</h2>
         @if (!editingAlbum()) {
-          <label title="Folder with 1 cover image + song files (or one sub-folder per song)" class="flex items-center gap-1.5 rounded-full border border-white/30 px-3.5 py-1.5 text-xs font-bold cursor-pointer hover:border-white hover:scale-105 transition focus-within:ring-1 focus-within:ring-white">
+          <label title="Folder with song files (or one sub-folder per song) and up to 1 cover image" class="flex items-center gap-1.5 rounded-full border border-white/30 px-3.5 py-1.5 text-xs font-bold cursor-pointer hover:border-white hover:scale-105 transition focus-within:ring-1 focus-within:ring-white">
             <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
             Add folder
             <input type="file" webkitdirectory multiple (change)="onAlbumFolder($event)" class="sr-only" />
@@ -299,11 +302,24 @@
 
         <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Album cover</label>
         <div class="flex items-center gap-3 mb-4">
-          <img [src]="af.coverPreview" alt="Album cover" class="w-16 h-16 rounded-md object-cover" />
+          @if (af.coverPreview) {
+            <img [src]="af.coverPreview" alt="Album cover" class="w-16 h-16 rounded-md object-cover" />
+          } @else {
+            <div class="w-16 h-16 rounded-md border border-dashed border-amber-300/60 bg-white/5 flex items-center justify-center text-2xl">💿</div>
+          }
           <div class="text-xs text-[#a7a7a7] min-w-0">
-            <p class="truncate">{{ af.cover.name }} · also the cover of songs without their own</p>
+            @if (!af.cover) {
+              <p class="font-bold text-amber-300">Missing: no cover in the folder or in its songs.</p>
+              <p>Add one now, or later from the album.</p>
+            } @else if (af.coverFrom === '') {
+              <p class="truncate">{{ af.cover.name }} · also the cover of songs without their own</p>
+            } @else if (af.coverFrom === 'picked') {
+              <p class="truncate">{{ af.cover.name }} · picked by you</p>
+            } @else {
+              <p class="truncate">No cover in the main folder: taken from “{{ af.coverFrom }}”.</p>
+            }
             <label class="inline-block mt-1 font-bold text-white cursor-pointer hover:underline">
-              Change
+              {{ af.cover ? 'Change' : 'Add cover' }}
               <input type="file" accept="image/*" (change)="onFolderCover($event)" class="sr-only" />
             </label>
           </div>
@@ -314,7 +330,11 @@
           @for (x of af.songs; track x.key) {
             <div class="flex items-center gap-2 p-2">
               <label class="relative shrink-0 cursor-pointer group" title="Change this song's cover">
-                <img [src]="x.coverPreview ?? af.coverPreview" alt="" class="w-10 h-10 rounded object-cover" />
+                @if (x.coverPreview ?? af.coverPreview; as src) {
+                  <img [src]="src" alt="" class="w-10 h-10 rounded object-cover" />
+                } @else {
+                  <span class="w-10 h-10 rounded border border-dashed border-amber-300/60 bg-white/5 flex items-center justify-center">🎵</span>
+                }
                 <span class="absolute inset-0 rounded bg-black/60 text-[10px] font-bold hidden group-hover:flex items-center justify-center">Edit</span>
                 <input type="file" accept="image/*" (change)="onFolderSongCover(x.key, $event)" class="sr-only" />
               </label>
@@ -322,7 +342,15 @@
                 <input [ngModel]="x.title" (ngModelChange)="setFolderSongTitle(x.key, $event)" maxlength="120" aria-label="Song title"
                   class="w-full rounded bg-white/10 text-sm px-2 py-1 outline-none focus:ring-1 focus:ring-white" />
                 <p class="text-[11px] text-[#a7a7a7] truncate mt-0.5">
-                  {{ x.from ? x.from + '/' : '' }}{{ x.audio.name }} · {{ x.cover ? 'own cover' : 'album cover' }}
+                  {{ x.from ? x.from + '/' : '' }}{{ x.audio.name }} ·
+                  @switch (x.coverFrom) {
+                    @case ('folder') { own cover }
+                    @case ('song file') { cover from the song file }
+                    @case ('picked') { cover picked by you }
+                    @default {
+                      @if (af.cover) { album cover } @else { <span class="text-amber-300">no cover</span> }
+                    }
+                  }
                 </p>
               </div>
               <span class="text-xs tabular-nums" [class]="x.duration ? 'text-[#b3b3b3]' : 'text-[#f37c7c]'">{{ x.duration ? fmt(x.duration) : '?:??' }}</span>

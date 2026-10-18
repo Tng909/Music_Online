@@ -13,6 +13,7 @@ import {
   readDuration,
   readSongFolder,
 } from '../../data/folder-pick';
+import { readEmbeddedCover } from '../../data/embedded-cover';
 
 type Tab = 'songs' | 'albums';
 
@@ -21,8 +22,11 @@ interface FolderSong {
   key: number;
   title: string;
   audio: File;
+  /** Its own cover: from its sub-folder, from the song file, or picked by the artist. */
   cover: File | null;
   coverPreview: string | null;
+  /** Where `cover` came from; null = uses the album cover. */
+  coverFrom: 'folder' | 'song file' | 'picked' | null;
   duration: number;
   /** Sub-folder it came from ("" = main folder). */
   from: string;
@@ -31,8 +35,11 @@ interface FolderSong {
 /** Album folder under review: nothing is uploaded until "Add album". */
 interface FolderAlbum {
   folder: string;
-  cover: File;
-  coverPreview: string;
+  /** null = no cover found yet (the artist can pick one now or later). */
+  cover: File | null;
+  coverPreview: string | null;
+  /** "" = the main folder's cover, a song title = taken from that song, "picked", or null. */
+  coverFrom: string | null;
   songs: FolderSong[];
 }
 type SongSort = 'newest' | 'oldest' | 'plays' | 'title';
@@ -109,6 +116,8 @@ export class StudioPage {
   fDuration = signal(0);
   fCoverUrl = signal<string | null>(null);
   fCoverPreview = signal<string | null>(null);
+  /** The cover was taken from the song file (the artist didn't pick one). */
+  fCoverAuto = signal(false);
   fAudioUrl = signal<string | null>(null);
   fAudioName = signal('');
   /** Files picked in the form; sent together with it on save. */
@@ -193,6 +202,7 @@ export class StudioPage {
     this.editingSongId.set(null);
     this.fTitle.set('');
     this.fTitleAuto.set(false);
+    this.fCoverAuto.set(false);
     this.fAlbum.set(album);
     this.fFeatured.set([]);
     this.fFeatQuery.set('');
@@ -212,6 +222,7 @@ export class StudioPage {
     this.editingSongId.set(s.id);
     this.fTitle.set(s.title);
     this.fTitleAuto.set(false);
+    this.fCoverAuto.set(false);
     // A single shows an empty album field: it follows the title.
     this.fAlbum.set(this.isSingle(s) ? '' : s.album);
     this.fFeatured.set(this.featuredOf(s));
@@ -252,7 +263,9 @@ export class StudioPage {
 
   async onCoverFile(event: Event): Promise<void> {
     const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) await this.setCover(file);
+    if (!file) return;
+    this.fCoverAuto.set(false);
+    await this.setCover(file);
   }
 
   /** Song file: duration from the file; title follows the file name unless typed. */
@@ -263,7 +276,28 @@ export class StudioPage {
       this.fTitle.set(file.name.replace(/\.[^.]+$/, ''));
       this.fTitleAuto.set(true);
     }
-    await this.setAudio(file);
+    await Promise.all([this.setAudio(file), this.coverFromSong(file)]);
+  }
+
+  /**
+   * No cover chosen (or the current one came from an earlier song file): use the
+   * picture embedded in the song file, if it has one. A cover the user picked,
+   * or the song's saved cover, is never replaced.
+   */
+  private async coverFromSong(song: File): Promise<void> {
+    const before = this.fCoverPreview();
+    if (before && !this.fCoverAuto()) return;
+    const art = await readEmbeddedCover(song);
+    if (this.fCoverPreview() !== before) return; // the user picked a cover meanwhile
+    if (art) {
+      this.fCoverAuto.set(true);
+      await this.setCover(art);
+    } else if (this.fCoverAuto()) {
+      this.fCoverAuto.set(false);
+      this.fCoverFile.set(null);
+      this.fCoverUrl.set(null);
+      this.fCoverPreview.set(null);
+    }
   }
 
   /**
@@ -278,6 +312,7 @@ export class StudioPage {
     this.fError.set(null);
     this.fTitle.set(picked.folder);
     this.fTitleAuto.set(true);
+    this.fCoverAuto.set(false);
     this.fFromFolder.set({ folder: picked.folder, cover: picked.cover.name, audio: picked.audio.name });
     await Promise.all([this.setCover(picked.cover), this.setAudio(picked.audio)]);
   }
@@ -286,6 +321,7 @@ export class StudioPage {
   undoSongFolder(): void {
     this.fTitle.set('');
     this.fTitleAuto.set(false);
+    this.fCoverAuto.set(false);
     this.fCoverUrl.set(null);
     this.fCoverPreview.set(null);
     this.fAudioUrl.set(null);
@@ -394,24 +430,37 @@ export class StudioPage {
     const picked = readAlbumFolder(input.files);
     input.value = '';
     if (isFolderAlert(picked)) return this.folderAlert.set(picked);
-    const durations = await Promise.all(picked.songs.map((x) => readDuration(x.audio)));
+    // Without a main-folder cover, songs in the main folder use the picture inside their file.
+    const [durations, embedded] = await Promise.all([
+      Promise.all(picked.songs.map((x) => readDuration(x.audio))),
+      Promise.all(picked.songs.map((x) => (picked.cover || x.cover ? null : readEmbeddedCover(x.audio)))),
+    ]);
+    const songs: FolderSong[] = picked.songs.map((x, i) => {
+      const cover = x.cover ?? embedded[i];
+      return {
+        key: i,
+        title: x.title,
+        audio: x.audio,
+        cover,
+        coverPreview: cover ? URL.createObjectURL(cover) : null,
+        coverFrom: x.cover ? 'folder' : embedded[i] ? 'song file' : null,
+        duration: Math.round(durations[i]),
+        from: x.from,
+      };
+    });
+    // Album cover: the main folder's image, else the first song that has a cover.
+    const first = picked.cover ? null : songs.find((x) => x.cover);
+    const cover = picked.cover ?? first?.cover ?? null;
     if (!this.albumModal()) this.openAddAlbum();
     this.editingAlbum.set(null);
     this.aName.set(picked.folder);
     this.aError.set(null);
     this.aFolder.set({
       folder: picked.folder,
-      cover: picked.cover,
-      coverPreview: URL.createObjectURL(picked.cover),
-      songs: picked.songs.map((x, i) => ({
-        key: i,
-        title: x.title,
-        audio: x.audio,
-        cover: x.cover,
-        coverPreview: x.cover ? URL.createObjectURL(x.cover) : null,
-        duration: Math.round(durations[i]),
-        from: x.from,
-      })),
+      cover,
+      coverPreview: picked.cover ? URL.createObjectURL(picked.cover) : (first?.coverPreview ?? null),
+      coverFrom: picked.cover ? '' : (first?.title ?? null),
+      songs,
     });
   }
 
@@ -437,7 +486,7 @@ export class StudioPage {
     input.value = '';
     if (!file) return;
     if (!isImageFile(file)) return this.aError.set('The album cover must be an image.');
-    this.updateFolder((f) => ({ ...f, cover: file, coverPreview: URL.createObjectURL(file) }));
+    this.updateFolder((f) => ({ ...f, cover: file, coverPreview: URL.createObjectURL(file), coverFrom: 'picked' }));
   }
 
   /** Replace one folder song's own cover. */
@@ -449,7 +498,9 @@ export class StudioPage {
     if (!isImageFile(file)) return this.aError.set('A song cover must be an image.');
     this.updateFolder((f) => ({
       ...f,
-      songs: f.songs.map((x) => (x.key === key ? { ...x, cover: file, coverPreview: URL.createObjectURL(file) } : x)),
+      songs: f.songs.map((x) =>
+        x.key === key ? { ...x, cover: file, coverPreview: URL.createObjectURL(file), coverFrom: 'picked' as const } : x,
+      ),
     }));
   }
 
@@ -488,17 +539,25 @@ export class StudioPage {
     const unreadable = folder.songs.find((x) => !x.duration);
     if (unreadable) return this.aError.set(`Can't read the length of “${unreadable.audio.name}”. Remove it or use another file.`);
 
-    const files: File[] = [folder.cover];
-    const manifest: AlbumFolderManifest = { album: name, cover: 0, songs: [], existingSongIds: ids };
+    // Each file is sent once, even when a song's cover is also the album cover.
+    const files: File[] = [];
+    const indexOf = (f: File) => {
+      const at = files.indexOf(f);
+      return at >= 0 ? at : files.push(f) - 1;
+    };
+    const manifest: AlbumFolderManifest = {
+      album: name,
+      cover: folder.cover ? indexOf(folder.cover) : null,
+      songs: [],
+      existingSongIds: ids,
+    };
     for (const x of folder.songs) {
-      files.push(x.audio);
-      const audio = files.length - 1;
-      let cover: number | null = null;
-      if (x.cover) {
-        files.push(x.cover);
-        cover = files.length - 1;
-      }
-      manifest.songs.push({ title: x.title.trim(), audio, cover, duration: x.duration });
+      manifest.songs.push({
+        title: x.title.trim(),
+        audio: indexOf(x.audio),
+        cover: x.cover ? indexOf(x.cover) : null,
+        duration: x.duration,
+      });
     }
     this.aSaving.set(true);
     try {

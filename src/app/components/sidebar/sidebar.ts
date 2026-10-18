@@ -23,7 +23,8 @@ export class Sidebar {
   private router = inject(Router);
 
 
-  albums = this.music.albums;
+  /** Only albums the user added (plus their own, listed separately). */
+  albums = this.library.albums;
   playlists = this.library.playlists;
   artists = this.library.artists;
   ownPlaylists = this.library.ownPlaylists;
@@ -60,6 +61,10 @@ export class Sidebar {
     }
     this.menuOpen.set(false);
     void this.router.navigate(['/create', kind]);
+  }
+
+  removeAlbum(id: string): void {
+    void this.library.toggleSaveAlbum(id);
   }
 
   playAlbum(id: string): void {

@@ -5,6 +5,7 @@ import { map } from 'rxjs';
 import { QueueSource } from '../../data/music-data';
 import { PlayerService } from '../../services/player.service';
 import { MusicService } from '../../services/music.service';
+import { LibraryService } from '../../services/library.service';
 import { TrackList } from '../../components/track-list/track-list';
 
 @Component({
@@ -15,6 +16,7 @@ import { TrackList } from '../../components/track-list/track-list';
 export class AlbumPage {
   player = inject(PlayerService);
   music = inject(MusicService);
+  library = inject(LibraryService);
   private route = inject(ActivatedRoute);
 
   albumId = toSignal(this.route.paramMap.pipe(map((p) => p.get('id') ?? '')), {
@@ -27,6 +29,7 @@ export class AlbumPage {
     const al = this.album();
     return al ? { type: 'album', id: al.id, name: al.title } : null;
   });
+  saved = computed(() => this.library.savedAlbumIds().has(this.albumId()));
   /** True while this album is what the player is playing from. */
   playingHere = computed(
     () => this.player.isPlaying() && this.player.queueSource()?.id === this.album()?.id,

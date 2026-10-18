@@ -26,6 +26,7 @@ function libraryOf(user) {
   return {
     followedArtists: user.followedArtists || [],
     savedPlaylists: user.savedPlaylists || [],
+    savedAlbums: user.savedAlbums || [],
   };
 }
 
@@ -36,6 +37,7 @@ function mutate(req, res, fn) {
   if (!user) return res.status(401).json({ error: 'Please log in first.' });
   user.followedArtists = user.followedArtists || [];
   user.savedPlaylists = user.savedPlaylists || [];
+  user.savedAlbums = user.savedAlbums || [];
   fn(user);
   writeUsers(db);
   res.json(libraryOf(user));
@@ -79,6 +81,19 @@ function createLibraryRouter() {
   router.delete('/playlists/:id', requireAuth, (req, res) =>
     mutate(req, res, (u) => {
       u.savedPlaylists = u.savedPlaylists.filter((id) => id !== req.params.id);
+    }),
+  );
+
+  // Albums saved to the library (album ids from /api/albums).
+  router.put('/albums/:id', requireAuth, (req, res) =>
+    mutate(req, res, (u) => {
+      if (!u.savedAlbums.includes(req.params.id)) u.savedAlbums.unshift(req.params.id);
+    }),
+  );
+
+  router.delete('/albums/:id', requireAuth, (req, res) =>
+    mutate(req, res, (u) => {
+      u.savedAlbums = u.savedAlbums.filter((id) => id !== req.params.id);
     }),
   );
 

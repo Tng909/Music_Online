@@ -8,9 +8,36 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const multer = require('multer');
 const { appendHistory } = require('./history');
 
 const USERS_PATH = path.join(__dirname, 'data', 'users.json');
+const AVATAR_DIR = path.join(__dirname, '..', 'public', 'avatars');
+
+/** Profile pictures: images up to 5 MB, saved as public/avatars/<user>-<time>.<ext>. */
+const avatarUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      fs.mkdirSync(AVATAR_DIR, { recursive: true });
+      cb(null, AVATAR_DIR);
+    },
+    filename: (req, file, cb) => {
+      const ext = (path.extname(file.originalname || '').toLowerCase().match(/^\.[a-z0-9]{1,5}$/) || ['.jpg'])[0];
+      cb(null, `${req.user.id}-${Date.now()}${ext}`);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (/^image\//.test(file.mimetype)) cb(null, true);
+    else cb(new Error('Profile picture must be an image.'));
+  },
+});
+
+/** Delete a previous profile picture file (only ever inside public/avatars). */
+function removeAvatarFile(url) {
+  if (typeof url !== 'string' || !url.startsWith('/avatars/')) return;
+  fs.rm(path.join(AVATAR_DIR, path.basename(url)), { force: true }, () => {});
+}
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /** token -> { userId, expires } — memory only, cleared on server restart */
@@ -147,6 +174,37 @@ function createAuthRouter() {
 
   // ---- Session ----
   router.get('/me', requireAuth, (req, res) => res.json({ user: publicUser(req.user) }));
+
+  // ---- Profile picture ----
+  router.post('/avatar', requireAuth, (req, res) => {
+    avatarUpload.single('file')(req, res, (err) => {
+      if (err) {
+        const msg = err.code === 'LIMIT_FILE_SIZE' ? 'Profile picture must be 5 MB or smaller.' : err.message || 'Upload failed.';
+        return res.status(400).json({ error: msg });
+      }
+      if (!req.file) return res.status(400).json({ error: 'No file received.' });
+      const db = readUsers();
+      const user = db.users.find((u) => u.id === req.user.id);
+      if (!user) {
+        fs.rm(req.file.path, { force: true }, () => {});
+        return res.status(401).json({ error: 'Please log in first.' });
+      }
+      removeAvatarFile(user.avatarUrl);
+      user.avatarUrl = `/avatars/${req.file.filename}`;
+      writeUsers(db);
+      res.json({ user: publicUser(user) });
+    });
+  });
+
+  router.delete('/avatar', requireAuth, (req, res) => {
+    const db = readUsers();
+    const user = db.users.find((u) => u.id === req.user.id);
+    if (!user) return res.status(401).json({ error: 'Please log in first.' });
+    removeAvatarFile(user.avatarUrl);
+    delete user.avatarUrl;
+    writeUsers(db);
+    res.json({ user: publicUser(user) });
+  });
 
   router.post('/logout', requireAuth, (req, res) => {
     sessions.delete(req.authToken);

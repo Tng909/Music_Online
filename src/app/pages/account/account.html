@@ -3,12 +3,36 @@
 
   <!-- Profile summary -->
   <section class="flex items-center gap-4 rounded-lg bg-[#181818] hover:bg-[#242424] transition p-4 mb-4">
-    <span class="w-16 h-16 shrink-0 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-extrabold text-xl">
-      {{ initial() }}
-    </span>
+    <!-- Avatar: hover darkens + blurs it and shows a pencil; click to pick a new picture -->
+    <label title="Change profile picture"
+      class="group relative w-20 h-20 shrink-0 rounded-full overflow-hidden cursor-pointer focus-within:ring-2 focus-within:ring-white"
+      [class.pointer-events-none]="avatarBusy()">
+      @if (user()?.avatarUrl; as url) {
+        <img [src]="url" alt="Profile picture"
+          class="w-full h-full object-cover transition duration-200 group-hover:blur-[2px] group-hover:brightness-50 group-focus-within:blur-[2px] group-focus-within:brightness-50" />
+      } @else {
+        <span class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-extrabold text-2xl transition duration-200 group-hover:blur-[2px] group-hover:brightness-50 group-focus-within:blur-[2px] group-focus-within:brightness-50">
+          {{ initial() }}
+        </span>
+      }
+      <span class="absolute inset-0 flex items-center justify-center transition duration-200"
+        [class]="avatarBusy() ? 'opacity-100 bg-black/50' : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'">
+        @if (avatarBusy()) {
+          <svg viewBox="0 0 24 24" class="w-7 h-7 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" /></svg>
+        } @else {
+          <svg viewBox="0 0 24 24" class="w-7 h-7 drop-shadow" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>
+        }
+      </span>
+      <input type="file" accept="image/*" (change)="onAvatarFile($event)" class="sr-only" aria-label="Change profile picture" />
+    </label>
     <div class="min-w-0">
       <p class="text-lg font-extrabold truncate">{{ user()?.name }}</p>
       <p class="text-sm text-[#a7a7a7] truncate">{{ user()?.email ?? user()?.phone }}</p>
+      @if (avatarError()) {
+        <p class="text-xs text-[#f37c7c] mt-1" role="alert">{{ avatarError() }}</p>
+      } @else if (user()?.avatarUrl && !avatarBusy()) {
+        <button type="button" (click)="removeAvatar()" class="text-xs font-bold text-[#a7a7a7] hover:text-white mt-1">Remove photo</button>
+      }
     </div>
   </section>
 

@@ -92,6 +92,9 @@
         }
         <input type="file" accept="image/*" (change)="onCoverFile($event)" class="text-xs text-[#b3b3b3] file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-1.5 file:text-xs file:font-bold file:text-black file:cursor-pointer hover:file:bg-[#e5e5e5]" />
       </div>
+      @if (fCoverAuto()) {
+        <p class="text-[11px] text-[#1ed760] -mt-2 mb-3">Cover taken from the song file. Pick an image to use a different one.</p>
+      }
 
       <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Title</label>
       <input [ngModel]="fTitle()" (ngModelChange)="onTitleInput($event)" placeholder="Song title (defaults to the song file name)"

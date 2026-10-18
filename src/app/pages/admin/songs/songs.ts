@@ -4,6 +4,7 @@ import { AdminService, AdminTabState } from '../../../services/admin.service';
 import { MusicService } from '../../../services/music.service';
 import { Track, formatTime } from '../../../data/music-data';
 import { FolderAlert, isFolderAlert, readDuration, readSongFolder } from '../../../data/folder-pick';
+import { readEmbeddedCover } from '../../../data/embedded-cover';
 
 /** Same separators the server splits song credits on (server/catalog.js splitArtists). */
 const CREDIT_SPLIT = /\s*(?:,|&|\bfeat\.?|\bft\.?)\s*/i;
@@ -32,6 +33,8 @@ export class AdminSongs {
   fCoverUrl = signal<string | null>(null);
   fAudioUrl = signal<string | null>(null);
   fCoverPreview = signal<string | null>(null);
+  /** The cover was taken from the song file (the user didn't pick one). */
+  fCoverAuto = signal(false);
   fPickedArtists = signal<string[]>([]);
   fArtistQuery = signal('');
   fAudioName = signal('');
@@ -120,6 +123,7 @@ export class AdminSongs {
     this.fArtistQuery.set('');
     this.fAudioName.set('');
     this.fTitleAuto.set(false);
+    this.fCoverAuto.set(false);
     this.fFromFolder.set(null);
     this.fError.set(null);
     this.modalOpen.set(true);
@@ -137,6 +141,7 @@ export class AdminSongs {
     this.fArtistQuery.set('');
     this.fAudioName.set(t.audioUrl ? (t.audioUrl.split('/').pop() ?? '') : '');
     this.fTitleAuto.set(false);
+    this.fCoverAuto.set(false);
     this.fFromFolder.set(null);
     this.fError.set(null);
     this.modalOpen.set(true);
@@ -175,7 +180,9 @@ export class AdminSongs {
 
   async onCoverFile(event: Event): Promise<void> {
     const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) await this.setCover(file);
+    if (!file) return;
+    this.fCoverAuto.set(false);
+    await this.setCover(file);
   }
 
   /** Audio picked → upload + auto duration; title follows the file name unless one was typed. */
@@ -186,7 +193,27 @@ export class AdminSongs {
       this.fTitle.set(file.name.replace(/\.[^.]+$/, ''));
       this.fTitleAuto.set(true);
     }
-    await this.setAudio(file);
+    await Promise.all([this.setAudio(file), this.coverFromSong(file)]);
+  }
+
+  /**
+   * No cover chosen (or the current one came from an earlier song file): use the
+   * picture embedded in the song file, if it has one. A cover the user picked,
+   * or the song's saved cover, is never replaced.
+   */
+  private async coverFromSong(song: File): Promise<void> {
+    const before = this.fCoverPreview();
+    if (before && !this.fCoverAuto()) return;
+    const art = await readEmbeddedCover(song);
+    if (this.fCoverPreview() !== before) return; // the user picked a cover meanwhile
+    if (art) {
+      this.fCoverAuto.set(true);
+      await this.setCover(art);
+    } else if (this.fCoverAuto()) {
+      this.fCoverAuto.set(false);
+      this.fCoverUrl.set(null);
+      this.fCoverPreview.set(null);
+    }
   }
 
   /**
@@ -206,6 +233,7 @@ export class AdminSongs {
     this.fError.set(null);
     this.fTitle.set(folder);
     this.fTitleAuto.set(true);
+    this.fCoverAuto.set(false);
     this.fFromFolder.set({ folder, cover: cover.name, audio: audio.name });
     await Promise.all([this.setCover(cover), this.setAudio(audio)]);
   }
@@ -214,6 +242,7 @@ export class AdminSongs {
   undoFolder(): void {
     this.fTitle.set('');
     this.fTitleAuto.set(false);
+    this.fCoverAuto.set(false);
     this.fCoverUrl.set(null);
     this.fCoverPreview.set(null);
     this.fAudioUrl.set(null);

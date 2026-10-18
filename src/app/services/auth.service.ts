@@ -10,6 +10,8 @@ export interface AuthUser {
   name: string;
   provider: 'email';
   role?: 'admin' | 'artist' | 'user';
+  /** Profile picture under public/, e.g. "/avatars/u_1-123.jpg"; absent = show the initial. */
+  avatarUrl?: string | null;
   phone?: string | null;
   createdAt: string;
 }
@@ -52,6 +54,24 @@ export class AuthService {
 
   login(email: string, password: string): Promise<boolean> {
     return this.send('/login', { email, password });
+  }
+
+  /** Upload a new profile picture; the signed-in user is updated with it. */
+  async setAvatar(file: File): Promise<void> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    const res = await firstValueFrom(
+      this.http.post<{ user: AuthUser }>(`${API_URL}/auth/avatar`, form, { headers: { Authorization: `Bearer ${this.token}` } }),
+    );
+    this.user.set(res.user);
+  }
+
+  /** Back to the initial-letter avatar. */
+  async removeAvatar(): Promise<void> {
+    const res = await firstValueFrom(
+      this.http.delete<{ user: AuthUser }>(`${API_URL}/auth/avatar`, { headers: { Authorization: `Bearer ${this.token}` } }),
+    );
+    this.user.set(res.user);
   }
 
   async logout(): Promise<void> {

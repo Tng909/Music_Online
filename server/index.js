@@ -32,6 +32,7 @@ app.use(express.json());
 // e.g. http://localhost:3000/covers/after-hours.jpg
 app.use('/covers', express.static(path.join(PUBLIC_DIR, 'covers')));
 app.use('/audio', express.static(path.join(PUBLIC_DIR, 'audio')));
+app.use('/avatars', express.static(path.join(PUBLIC_DIR, 'avatars')));
 
 function readDb() {
   return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));

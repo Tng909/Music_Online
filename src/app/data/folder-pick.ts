@@ -34,7 +34,8 @@ export interface AlbumFolderSong {
 
 export interface AlbumFolder {
   folder: string;
-  cover: File;
+  /** The main folder's cover image; null when it has none. */
+  cover: File | null;
   songs: AlbumFolderSong[];
 }
 
@@ -76,7 +77,7 @@ export function readSongFolder(picked: FileList | File[] | null): SongFolder | F
 }
 
 /**
- * Album folder: exactly one cover image in the main folder (album cover, and the
+ * Album folder: at most one cover image in the main folder (album cover, and the
  * cover of every song without its own), song files in the main folder, and/or
  * sub-folders that each follow the song-folder rule (1 cover + 1 song).
  * At least one song in total.
@@ -100,8 +101,9 @@ export function readAlbumFolder(picked: FileList | File[] | null): AlbumFolder |
   for (const f of root) {
     if (!isImageFile(f) && !isAudioFile(f)) problems.push(`${f.name}: not a cover image or song file.`);
   }
-  if (rootCovers.length !== 1) {
-    problems.push(`The main folder needs exactly 1 cover image (found ${rootCovers.length}).`);
+  // No cover is fine (one is picked from the songs later); more than one is ambiguous.
+  if (rootCovers.length > 1) {
+    problems.push(`The main folder can have only 1 cover image (found ${rootCovers.length}).`);
   }
 
   const songs: AlbumFolderSong[] = rootSongs.map((f) => ({ title: fileTitle(f), audio: f, cover: null, from: '' }));
@@ -120,7 +122,7 @@ export function readAlbumFolder(picked: FileList | File[] | null): AlbumFolder |
   if (problems.length) {
     return { folder, reason: 'This folder does not follow the album layout.', files: problems };
   }
-  return { folder, cover: rootCovers[0], songs };
+  return { folder, cover: rootCovers[0] ?? null, songs };
 }
 
 /** Length of an audio file in seconds (0 when the browser can't read it). */

@@ -1,0 +1,415 @@
+<div class="px-6 pb-10">
+  <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+    <div class="min-w-0">
+      <p class="text-xs font-bold uppercase tracking-widest text-[#a7a7a7]">Artist studio</p>
+      <h1 class="text-2xl md:text-3xl font-extrabold truncate">{{ artist()?.name ?? 'Manage songs' }}</h1>
+      @if (artist(); as a) {
+        <a [routerLink]="['/artist', a.id]" class="text-xs font-bold text-[#b3b3b3] hover:text-white hover:underline">View artist page →</a>
+      }
+    </div>
+    <div class="flex rounded-full bg-white/10 p-1 text-sm font-bold" role="tablist">
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'songs'" (click)="tab.set('songs'); confirmDelete.set(null)"
+        [class]="tab() === 'songs' ? 'bg-white text-black' : 'text-[#b3b3b3] hover:text-white'"
+        class="rounded-full px-4 py-1.5 transition">Songs · {{ songs().length }}</button>
+      <button type="button" role="tab" [attr.aria-selected]="tab() === 'albums'" (click)="tab.set('albums'); confirmDelete.set(null)"
+        [class]="tab() === 'albums' ? 'bg-white text-black' : 'text-[#b3b3b3] hover:text-white'"
+        class="rounded-full px-4 py-1.5 transition">Albums · {{ albums().length }}</button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <p class="rounded-md bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-[#f37c7c] mb-3">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="text-sm text-[#b3b3b3] py-8 text-center">Loading your songs…</p>
+  } @else if (tab() === 'songs') {
+    <!-- ================= Songs ================= -->
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <input [ngModel]="songQuery()" (ngModelChange)="songQuery.set($event); songPager.page.set(1)"
+        placeholder="Search title, featured artist, album…" aria-label="Search songs"
+        class="flex-1 min-w-[180px] rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+      <select [ngModel]="albumFilter()" (ngModelChange)="albumFilter.set($event); songPager.page.set(1)" aria-label="Album"
+        class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none max-w-[200px]">
+        <option value="">All albums</option>
+        @for (a of albums(); track a.name) {
+          <option [value]="a.name">{{ a.name }} ({{ a.songs.length }})</option>
+        }
+      </select>
+      <select [ngModel]="songSort()" (ngModelChange)="songSort.set($event); songPager.page.set(1)" aria-label="Sort"
+        class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="plays">Most played</option>
+        <option value="title">Title A–Z</option>
+      </select>
+      <button type="button" (click)="openAddSong()"
+        class="rounded-full bg-white text-black text-sm font-bold px-5 py-2 hover:scale-105 transition">+ Song</button>
+    </div>
+
+    <div class="@container rounded-lg bg-[#181818] overflow-hidden">
+      <div class="hidden @2xl:grid grid-cols-[40px_44px_1fr_160px_70px_56px_120px] gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-[#a7a7a7]">
+        <span>No</span><span>Cover</span><span>Title</span><span>Album</span><span class="text-right">Plays</span><span class="text-right">⏱</span><span class="text-right">Options</span>
+      </div>
+      @for (s of songRows(); track s.id; let i = $index) {
+        <div class="grid grid-cols-[28px_40px_1fr_auto] @2xl:grid-cols-[40px_44px_1fr_160px_70px_56px_120px] gap-2 items-center px-4 py-2.5 border-t border-white/5 hover:bg-white/5">
+          <span class="text-sm text-[#a7a7a7] tabular-nums">{{ (songPager.page() - 1) * songPager.pageSize + i + 1 }}</span>
+          @if (s.coverUrl) {
+            <img [src]="s.coverUrl" [alt]="s.title" class="w-10 h-10 rounded object-cover" />
+          } @else {
+            <div [class]="'w-10 h-10 rounded flex items-center justify-center bg-gradient-to-br ' + s.gradient">{{ s.emoji }}</div>
+          }
+          <div class="min-w-0">
+            <p class="text-sm font-bold truncate">{{ s.title }}</p>
+            <p class="text-xs text-[#a7a7a7] truncate">
+              @if (featuredOf(s).length) { feat. {{ featuredOf(s).join(', ') }} }
+              <span class="@2xl:hidden">@if (featuredOf(s).length) { · }{{ isSingle(s) ? 'Single' : s.album }} · {{ fmt(s.duration) }}</span>
+            </p>
+          </div>
+          <span class="hidden @2xl:block text-xs truncate" [class]="isSingle(s) ? 'text-[#8a8a8a]' : 'text-[#b3b3b3]'">
+            {{ isSingle(s) ? 'Single' : s.album }}
+          </span>
+          <span class="hidden @2xl:block text-xs text-[#b3b3b3] text-right tabular-nums">{{ count(playsOf(s)) }}</span>
+          <span class="hidden @2xl:block text-xs text-[#b3b3b3] text-right tabular-nums">{{ fmt(s.duration) }}</span>
+          <span class="flex justify-end items-center gap-2 text-xs font-bold">
+            @if (confirmDelete() === s.id) {
+              <button type="button" (click)="deleteSong(s)" class="rounded-full bg-red-500 text-black px-3 py-1 hover:bg-red-400">Delete</button>
+              <button type="button" (click)="confirmDelete.set(null)" class="text-[#b3b3b3] hover:text-white">Keep</button>
+            } @else {
+              <button type="button" (click)="openEditSong(s)" class="text-[#b3b3b3] hover:text-white">Edit</button>
+              <button type="button" (click)="confirmDelete.set(s.id)" class="text-[#f37c7c] hover:text-red-400">Delete</button>
+            }
+          </span>
+        </div>
+      } @empty {
+        <p class="px-4 py-8 text-center text-sm text-[#b3b3b3]">
+          {{ songs().length ? 'No songs match these filters.' : 'No songs yet. Add your first song.' }}
+        </p>
+      }
+    </div>
+
+    <div class="flex items-center justify-center gap-3 mt-4 text-sm">
+      <button type="button" (click)="songPager.page.set(songPager.page() - 1); songPager.clamp(filteredSongs().length)" [disabled]="songPager.page() <= 1"
+        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Previous page">‹</button>
+      <span class="flex items-center gap-1 text-[#b3b3b3]">
+        <input [ngModel]="songPager.page()" (ngModelChange)="songPager.goTo($event, filteredSongs().length)"
+          class="w-12 rounded bg-white/10 text-center text-white tabular-nums px-1 py-0.5 outline-none focus:ring-1 focus:ring-white" aria-label="Current page" />
+        <span>/ {{ songPager.pages(filteredSongs().length) }} · {{ filteredSongs().length }} total</span>
+      </span>
+      <button type="button" (click)="songPager.page.set(songPager.page() + 1); songPager.clamp(filteredSongs().length)" [disabled]="songPager.page() >= songPager.pages(filteredSongs().length)"
+        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Next page">›</button>
+    </div>
+  } @else {
+    <!-- ================= Albums ================= -->
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <input [ngModel]="albumQuery()" (ngModelChange)="albumQuery.set($event); albumPager.page.set(1)"
+        placeholder="Search album or song…" aria-label="Search albums"
+        class="flex-1 min-w-[180px] rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+      <label title="Folder with 1 cover image + song files (or one sub-folder per song)" class="flex items-center gap-1.5 rounded-full border border-white/30 px-4 py-2 text-sm font-bold cursor-pointer hover:border-white hover:scale-105 transition focus-within:ring-1 focus-within:ring-white">
+        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+        Album folder
+        <input type="file" webkitdirectory multiple (change)="onAlbumFolder($event)" class="sr-only" />
+      </label>
+      <button type="button" (click)="openAddAlbum()" [disabled]="!songs().length"
+        [title]="songs().length ? 'Group your songs into an album' : 'Add a song first (or use Album folder)'"
+        class="rounded-full bg-white text-black text-sm font-bold px-5 py-2 hover:scale-105 transition disabled:opacity-50 disabled:hover:scale-100">+ Album</button>
+    </div>
+    <p class="text-xs text-[#8a8a8a] -mt-2 mb-3">
+      A song without an album is a single: its album is named after the song.
+      @if (!songs().length) { No songs yet, so + Album is off. Use Album folder or add a song first. }
+    </p>
+
+    <div class="rounded-lg bg-[#181818] overflow-hidden">
+      @for (a of albumRows(); track a.name; let i = $index) {
+        <div class="grid grid-cols-[28px_48px_1fr_auto] gap-3 items-center px-4 py-2.5 border-t border-white/5 first:border-t-0 hover:bg-white/5">
+          <span class="text-sm text-[#a7a7a7] tabular-nums">{{ (albumPager.page() - 1) * albumPager.pageSize + i + 1 }}</span>
+          @if (a.coverUrl) {
+            <img [src]="a.coverUrl" [alt]="a.name" class="w-12 h-12 rounded object-cover" />
+          } @else {
+            <div class="w-12 h-12 rounded flex items-center justify-center bg-white/10 text-xl">💿</div>
+          }
+          <div class="min-w-0">
+            <p class="text-sm font-bold truncate">{{ a.name }}</p>
+            <p class="text-xs text-[#a7a7a7] truncate">
+              {{ a.songs.length === 1 ? 'Single · 1 song' : 'Album · ' + a.songs.length + ' songs' }} — {{ a.songs.map(s => s.title).join(', ') }}
+            </p>
+          </div>
+          <span class="flex justify-end items-center gap-3 text-xs font-bold">
+            @if (confirmDelete() === 'album:' + a.name) {
+              <span class="hidden sm:inline font-normal text-[#b3b3b3]">Songs stay, as singles.</span>
+              <button type="button" (click)="deleteAlbum(a)" class="rounded-full bg-red-500 text-black px-3 py-1 hover:bg-red-400">Remove</button>
+              <button type="button" (click)="confirmDelete.set(null)" class="text-[#b3b3b3] hover:text-white">Keep</button>
+            } @else {
+              <button type="button" (click)="openAddSong(a.name)" class="text-[#b3b3b3] hover:text-white" title="New song in this album">+ Song</button>
+              <button type="button" (click)="openEditAlbum(a)" class="text-[#b3b3b3] hover:text-white">Edit</button>
+              @if (a.songs.length > 1 || a.name.toLowerCase() !== a.songs[0].title.toLowerCase()) {
+                <button type="button" (click)="confirmDelete.set('album:' + a.name)" class="text-[#f37c7c] hover:text-red-400">Remove</button>
+              }
+            }
+          </span>
+        </div>
+      } @empty {
+        <p class="px-4 py-8 text-center text-sm text-[#b3b3b3]">
+          {{ albums().length ? 'No albums match.' : 'No albums yet. Add a song first.' }}
+        </p>
+      }
+    </div>
+
+    <div class="flex items-center justify-center gap-3 mt-4 text-sm">
+      <button type="button" (click)="albumPager.page.set(albumPager.page() - 1); albumPager.clamp(filteredAlbums().length)" [disabled]="albumPager.page() <= 1"
+        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Previous page">‹</button>
+      <span class="flex items-center gap-1 text-[#b3b3b3]">
+        <input [ngModel]="albumPager.page()" (ngModelChange)="albumPager.goTo($event, filteredAlbums().length)"
+          class="w-12 rounded bg-white/10 text-center text-white tabular-nums px-1 py-0.5 outline-none focus:ring-1 focus:ring-white" aria-label="Current page" />
+        <span>/ {{ albumPager.pages(filteredAlbums().length) }} · {{ filteredAlbums().length }} total</span>
+      </span>
+      <button type="button" (click)="albumPager.page.set(albumPager.page() + 1); albumPager.clamp(filteredAlbums().length)" [disabled]="albumPager.page() >= albumPager.pages(filteredAlbums().length)"
+        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Next page">›</button>
+    </div>
+  }
+</div>
+
+<!-- ================= Song modal ================= -->
+@if (songModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" (click)="closeSongModal()">
+    <div role="dialog" aria-modal="true" aria-labelledby="studio-song-title" (click)="$event.stopPropagation()"
+      class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-[#282828] p-6">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <h2 id="studio-song-title" class="text-xl font-extrabold">{{ editingSongId() ? 'Edit song' : 'Add song' }}</h2>
+        @if (!editingSongId()) {
+          <label title="Pick a folder with 1 cover image + 1 song file" class="flex items-center gap-1.5 rounded-full border border-white/30 px-3.5 py-1.5 text-xs font-bold cursor-pointer hover:border-white hover:scale-105 transition focus-within:ring-1 focus-within:ring-white">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+            Add folder
+            <input type="file" webkitdirectory multiple (change)="onSongFolder($event)" class="sr-only" />
+          </label>
+        }
+      </div>
+
+      @if (fFromFolder(); as ff) {
+        <div class="rounded-md border border-[#1ed760]/40 bg-[#1ed760]/10 px-3 py-2.5 mb-4 text-xs">
+          <p class="font-bold text-[#1ed760]">Filled in from folder “{{ ff.folder }}”</p>
+          <p class="text-[#b3b3b3] mt-0.5 truncate">Cover: {{ ff.cover }} · Song: {{ ff.audio }}</p>
+          <p class="text-[#b3b3b3] mt-0.5">Check the fields below, change anything you like, then add the song.</p>
+          <div class="flex gap-3 mt-2">
+            <button type="button" (click)="fFromFolder.set(null)" class="font-bold text-white hover:underline">Looks good</button>
+            <button type="button" (click)="undoSongFolder()" class="font-bold text-[#f37c7c] hover:underline">Undo</button>
+          </div>
+        </div>
+      }
+
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Cover (file)</label>
+      <div class="flex items-center gap-3 mb-3">
+        @if (fCoverPreview()) {
+          <img [src]="fCoverPreview()" alt="Cover preview" class="w-16 h-16 rounded-md object-cover" />
+        } @else {
+          <div class="w-16 h-16 rounded-md bg-white/10 flex items-center justify-center text-2xl">🎵</div>
+        }
+        <input type="file" accept="image/*" (change)="onCoverFile($event)" class="text-xs text-[#b3b3b3] file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-1.5 file:text-xs file:font-bold file:text-black file:cursor-pointer hover:file:bg-[#e5e5e5]" />
+      </div>
+
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="studio-title">Title</label>
+      <input id="studio-title" [ngModel]="fTitle()" (ngModelChange)="onTitleInput($event)" maxlength="120"
+        placeholder="Song title (defaults to the song file name)"
+        class="w-full rounded-md bg-white/10 text-sm px-3 py-2.5 mb-3 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="studio-album">Album</label>
+      <input id="studio-album" [ngModel]="fAlbum()" (ngModelChange)="fAlbum.set($event)" maxlength="120" list="studio-albums"
+        [placeholder]="'Empty = single, named “' + (fTitle().trim() || 'song title') + '”'"
+        class="w-full rounded-md bg-white/10 text-sm px-3 py-2.5 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+      <datalist id="studio-albums">
+        @for (a of albums(); track a.name) {
+          <option [value]="a.name"></option>
+        }
+      </datalist>
+      <p class="text-[11px] text-[#8a8a8a] mt-1 mb-3">Type a new name to start an album, or pick one of yours.</p>
+
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="studio-feat">Artists</label>
+      <div class="flex flex-wrap gap-1.5 mb-2">
+        <span class="rounded-full bg-white/15 text-xs font-bold px-2.5 py-1" title="You are always credited">{{ artist()?.name }}</span>
+        @for (n of fFeatured(); track n) {
+          <span class="flex items-center gap-1 rounded-full bg-[#1ed760]/20 text-[#1ed760] text-xs font-bold px-2.5 py-1">
+            feat. {{ n }}
+            <button type="button" (click)="removeFeatured(n)" class="hover:text-white" [attr.aria-label]="'Remove ' + n">✕</button>
+          </span>
+        }
+      </div>
+      <input id="studio-feat" [ngModel]="fFeatQuery()" (ngModelChange)="fFeatQuery.set($event)"
+        (keydown.enter)="$event.preventDefault(); addFeatured(fFeatQuery())"
+        placeholder="Add a featured artist (optional), press Enter"
+        class="w-full rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+      @if (featSuggestions().length) {
+        <div class="mt-1 rounded-md bg-black/40 max-h-32 overflow-y-auto">
+          @for (n of featSuggestions(); track n) {
+            <button type="button" (click)="addFeatured(n)" class="w-full text-left px-3 py-1.5 text-sm hover:bg-white/10">{{ n }}</button>
+          }
+        </div>
+      }
+
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mt-4 mb-1">Song (file)</label>
+      <div class="flex items-center gap-3">
+        <input type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a" (change)="onAudioFile($event)" class="text-xs text-[#b3b3b3] file:mr-3 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-1.5 file:text-xs file:font-bold file:text-black file:cursor-pointer hover:file:bg-[#e5e5e5] flex-1" />
+        <span class="text-sm font-bold tabular-nums">{{ fmt(fDuration()) }}</span>
+      </div>
+      @if (fAudioName()) {
+        <p class="text-xs text-[#a7a7a7] mt-1 truncate">{{ fAudioName() }} · duration auto-calculated</p>
+      }
+
+      @if (fError()) {
+        <p class="text-sm text-[#f37c7c] mt-3" role="alert">{{ fError() }}</p>
+      }
+
+      <div class="flex justify-end gap-2 mt-5">
+        <button type="button" (click)="closeSongModal()" class="rounded-full px-5 py-2 text-sm font-bold text-[#b3b3b3] hover:text-white">Cancel</button>
+        <button type="button" (click)="saveSong()" [disabled]="fSaving()"
+          class="rounded-full bg-white text-black text-sm font-bold px-5 py-2 hover:scale-105 transition disabled:opacity-60">
+          {{ fSaving() ? (fCoverFile() || fAudioFile() ? 'Uploading…' : 'Saving…') : (editingSongId() ? 'Save' : 'Add song') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ================= Album modal ================= -->
+@if (albumModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" (click)="closeAlbumModal()">
+    <div role="dialog" aria-modal="true" aria-labelledby="studio-album-title" (click)="$event.stopPropagation()"
+      class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-[#282828] p-6">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <h2 id="studio-album-title" class="text-xl font-extrabold">{{ editingAlbum() ? 'Edit album' : 'Add album' }}</h2>
+        @if (!editingAlbum()) {
+          <label title="Folder with 1 cover image + song files (or one sub-folder per song)" class="flex items-center gap-1.5 rounded-full border border-white/30 px-3.5 py-1.5 text-xs font-bold cursor-pointer hover:border-white hover:scale-105 transition focus-within:ring-1 focus-within:ring-white">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+            Add folder
+            <input type="file" webkitdirectory multiple (change)="onAlbumFolder($event)" class="sr-only" />
+          </label>
+        }
+      </div>
+
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="studio-album-name">Name</label>
+      <input id="studio-album-name" [ngModel]="aName()" (ngModelChange)="aName.set($event)" maxlength="120"
+        [placeholder]="albumPicked().length === 1 ? 'Empty = named “' + albumPicked()[0].title + '”' : 'Album name'"
+        class="w-full rounded-md bg-white/10 text-sm px-3 py-2.5 mb-4 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+
+      @if (aFolder(); as af) {
+        <div class="rounded-md border border-[#1ed760]/40 bg-[#1ed760]/10 px-3 py-2.5 mb-4 text-xs">
+          <p class="font-bold text-[#1ed760]">Filled in from folder “{{ af.folder }}”</p>
+          <p class="text-[#b3b3b3] mt-0.5">Check the name, cover and songs, change anything you like, then add the album. Nothing is uploaded until then.</p>
+          <button type="button" (click)="undoAlbumFolder()" class="mt-2 font-bold text-[#f37c7c] hover:underline">Undo</button>
+        </div>
+
+        <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Album cover</label>
+        <div class="flex items-center gap-3 mb-4">
+          <img [src]="af.coverPreview" alt="Album cover" class="w-16 h-16 rounded-md object-cover" />
+          <div class="text-xs text-[#a7a7a7] min-w-0">
+            <p class="truncate">{{ af.cover.name }} · also the cover of songs without their own</p>
+            <label class="inline-block mt-1 font-bold text-white cursor-pointer hover:underline">
+              Change
+              <input type="file" accept="image/*" (change)="onFolderCover($event)" class="sr-only" />
+            </label>
+          </div>
+        </div>
+
+        <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">New songs from the folder ({{ af.songs.length }})</label>
+        <div class="rounded-md border border-white/10 divide-y divide-white/5 mb-4">
+          @for (x of af.songs; track x.key) {
+            <div class="flex items-center gap-2 p-2">
+              <label class="relative shrink-0 cursor-pointer group" title="Change this song's cover">
+                <img [src]="x.coverPreview ?? af.coverPreview" alt="" class="w-10 h-10 rounded object-cover" />
+                <span class="absolute inset-0 rounded bg-black/60 text-[10px] font-bold hidden group-hover:flex items-center justify-center">Edit</span>
+                <input type="file" accept="image/*" (change)="onFolderSongCover(x.key, $event)" class="sr-only" />
+              </label>
+              <div class="flex-1 min-w-0">
+                <input [ngModel]="x.title" (ngModelChange)="setFolderSongTitle(x.key, $event)" maxlength="120" aria-label="Song title"
+                  class="w-full rounded bg-white/10 text-sm px-2 py-1 outline-none focus:ring-1 focus:ring-white" />
+                <p class="text-[11px] text-[#a7a7a7] truncate mt-0.5">
+                  {{ x.from ? x.from + '/' : '' }}{{ x.audio.name }} · {{ x.cover ? 'own cover' : 'album cover' }}
+                </p>
+              </div>
+              <span class="text-xs tabular-nums" [class]="x.duration ? 'text-[#b3b3b3]' : 'text-[#f37c7c]'">{{ x.duration ? fmt(x.duration) : '?:??' }}</span>
+              <button type="button" (click)="removeFolderSong(x.key)" class="text-[#b3b3b3] hover:text-white px-1" [attr.aria-label]="'Leave out ' + x.title">✕</button>
+            </div>
+          } @empty {
+            <p class="text-xs text-[#a7a7a7] p-3">No new songs left — pick some of your songs below, or Undo.</p>
+          }
+        </div>
+      }
+
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="studio-album-songs">
+        {{ aFolder() ? 'Add your existing songs too (optional)' : 'Songs in this album (one or more)' }}
+      </label>
+      <div class="rounded-md border border-white/10 p-3">
+        <input id="studio-album-songs" [ngModel]="aQuery()" (ngModelChange)="aQuery.set($event)" placeholder="Search your songs…"
+          class="w-full rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+        <div class="mt-2 max-h-40 overflow-y-auto flex flex-col gap-1">
+          @for (s of albumMatches(); track s.id) {
+            <button type="button" (click)="toggleAlbumSong(s.id)"
+              class="flex items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-white/10">
+              <span class="w-4 text-center text-[#1ed760] font-bold">+</span>
+              <span class="truncate">{{ s.title }}</span>
+              @if (currentAlbum(s); as cur) {
+                <span class="text-xs text-[#a7a7a7] truncate">· now in {{ cur }}</span>
+              }
+            </button>
+          } @empty {
+            <p class="text-xs text-[#a7a7a7] px-2 py-1">No more songs match.</p>
+          }
+        </div>
+        @if (albumPicked().length) {
+          <div class="mt-2 pt-2 border-t border-white/10 flex flex-wrap gap-1.5">
+            @for (s of albumPicked(); track s.id) {
+              <span class="flex items-center gap-1 rounded-full bg-[#1ed760]/20 text-[#1ed760] text-xs font-bold px-2.5 py-1">
+                {{ s.title }}
+                <button type="button" (click)="toggleAlbumSong(s.id)" class="hover:text-white" [attr.aria-label]="'Remove ' + s.title">✕</button>
+              </span>
+            }
+          </div>
+        }
+      </div>
+      @if (editingAlbum()) {
+        <p class="text-[11px] text-[#8a8a8a] mt-1">Songs you take out become singles.</p>
+      }
+
+      @if (aError()) {
+        <p class="text-sm text-[#f37c7c] mt-3" role="alert">{{ aError() }}</p>
+      }
+
+      <div class="flex justify-end gap-2 mt-5">
+        <button type="button" (click)="closeAlbumModal()" class="rounded-full px-5 py-2 text-sm font-bold text-[#b3b3b3] hover:text-white">Cancel</button>
+        <button type="button" (click)="saveAlbum()" [disabled]="aSaving()"
+          class="rounded-full bg-white text-black text-sm font-bold px-5 py-2 hover:scale-105 transition disabled:opacity-60">
+          {{ aSaving() ? (aFolder() ? 'Uploading…' : 'Saving…') : (editingAlbum() ? 'Save' : 'Add album') }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Folder rejected: alert card (instead of a browser alert) -->
+@if (folderAlert(); as fa) {
+  <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60" (click)="folderAlert.set(null)">
+    <div role="alertdialog" aria-modal="true" aria-labelledby="studio-alert-title" aria-describedby="studio-alert-reason"
+      (click)="$event.stopPropagation()"
+      class="w-full max-w-sm rounded-xl bg-[#282828] p-5 shadow-2xl shadow-black/60 border border-white/10">
+      <div class="flex items-start gap-3">
+        <div class="w-9 h-9 shrink-0 rounded-full bg-red-500/15 text-[#f37c7c] flex items-center justify-center">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" d="M12 8v5m0 3.5v.01"/><circle cx="12" cy="12" r="9.5"/></svg>
+        </div>
+        <div class="min-w-0">
+          <h3 id="studio-alert-title" class="font-extrabold">Can’t use {{ fa.folder ? '“' + fa.folder + '”' : 'this folder' }}</h3>
+          <p id="studio-alert-reason" class="text-sm text-[#b3b3b3] mt-1">{{ fa.reason }}</p>
+        </div>
+      </div>
+      @if (fa.files.length) {
+        <ul class="mt-3 max-h-40 overflow-y-auto rounded-md bg-black/30 px-3 py-2 text-xs text-[#b3b3b3] space-y-1">
+          @for (f of fa.files; track $index) {
+            <li class="break-words">{{ f }}</li>
+          }
+        </ul>
+      }
+      <div class="flex justify-end mt-4">
+        <button type="button" (click)="folderAlert.set(null)" autofocus
+          class="rounded-full bg-white text-black text-sm font-bold px-5 py-2 hover:scale-105 transition">OK</button>
+      </div>
+    </div>
+  </div>
+}

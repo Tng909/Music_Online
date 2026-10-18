@@ -1,0 +1,136 @@
+<div class="px-6 pb-10 max-w-3xl">
+  <h1 class="text-2xl md:text-3xl font-extrabold mb-6">Contact</h1>
+
+  @if (!auth.loggedIn()) {
+    <p class="text-sm text-[#b3b3b3]">
+      <a routerLink="/login" class="font-bold text-white underline">Log in</a> to contact us.
+    </p>
+  } @else {
+    <!-- New contact -->
+    <section class="rounded-lg bg-[#181818] p-4 sm:p-5 mb-8">
+      <h2 class="text-lg font-extrabold mb-4">Send a contact</h2>
+
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="contact-title">Title</label>
+      <input id="contact-title" [ngModel]="title()" (ngModelChange)="title.set($event)" maxlength="120"
+        placeholder="What is it about?"
+        class="w-full rounded-md bg-white/10 text-sm px-3 py-2.5 mb-3 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1" for="contact-detail">Detail</label>
+      <textarea id="contact-detail" [ngModel]="detail()" (ngModelChange)="detail.set($event)" rows="5" maxlength="5000"
+        placeholder="Tell us what happened or what you need"
+        class="w-full rounded-md bg-white/10 text-sm px-3 py-2.5 outline-none resize-y placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white"></textarea>
+      <p class="text-right text-[11px] text-[#8a8a8a] tabular-nums mb-3">{{ detail().length }} / 5000</p>
+
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Files (optional)</label>
+      <div class="flex flex-wrap items-center gap-2">
+        @for (f of files(); track f) {
+          <span class="flex items-center gap-1.5 rounded-full bg-white/10 text-xs px-3 py-1 max-w-full">
+            <span class="truncate max-w-[180px]">{{ f.name }}</span>
+            <span class="text-[#a7a7a7] tabular-nums">{{ bytes(f.size) }}</span>
+            <button type="button" (click)="removeFile(f)" class="text-[#b3b3b3] hover:text-white" [attr.aria-label]="'Remove ' + f.name">✕</button>
+          </span>
+        }
+        @if (files().length < maxFiles) {
+          <label class="flex items-center gap-1.5 rounded-full border border-white/30 px-3 py-1 text-xs font-bold cursor-pointer hover:border-white focus-within:ring-1 focus-within:ring-white">
+            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.5 12.6 20.9a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6L15.2 8"/></svg>
+            Add files
+            <input type="file" multiple (change)="onFiles($event)" class="sr-only" />
+          </label>
+        }
+      </div>
+      <p class="text-[11px] text-[#8a8a8a] mt-1">Up to {{ maxFiles }} files, 10 MB each.</p>
+
+      @if (formError()) {
+        <p class="text-sm text-[#f37c7c] mt-3" role="alert">{{ formError() }}</p>
+      }
+      @if (sent(); as s) {
+        <p class="text-sm text-[#1ed760] mt-3" role="status">Sent “{{ s }}”. It is listed below.</p>
+      }
+
+      <div class="flex justify-end mt-4">
+        <button type="button" (click)="send()" [disabled]="sending()"
+          class="rounded-full bg-[#1ed760] text-black text-sm font-bold px-6 py-2.5 hover:scale-105 hover:bg-[#1fdf64] transition disabled:opacity-60">
+          {{ sending() ? 'Sending…' : 'Send contact' }}
+        </button>
+      </div>
+    </section>
+
+    <!-- Contacts you sent -->
+    <h2 class="text-lg font-extrabold mb-3">Your contacts</h2>
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <input [ngModel]="state.query()" (ngModelChange)="state.query.set($event); onFilter()"
+        placeholder="Search title, messages, file…" aria-label="Search contacts"
+        class="flex-1 min-w-[180px] rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+      <select [ngModel]="state.status()" (ngModelChange)="state.status.set($event); onFilter()" aria-label="Status"
+        class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none">
+        <option value="all">All statuses</option>
+        <option value="open">Open</option>
+        <option value="resolved">Resolved</option>
+      </select>
+      <select [ngModel]="state.sort()" (ngModelChange)="state.sort.set($event); onFilter()" aria-label="Sort"
+        class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+      </select>
+      <button type="button" (click)="reload()" title="Check for new replies"
+        class="rounded-md bg-white/10 hover:bg-white/20 text-sm px-3 py-2">↻</button>
+    </div>
+
+    @if (listError()) {
+      <p class="rounded-md bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-[#f37c7c] mb-3">{{ listError() }}</p>
+    }
+
+    @if (loading()) {
+      <p class="text-sm text-[#b3b3b3] py-8 text-center">Loading…</p>
+    } @else {
+      <div class="@container rounded-lg bg-[#181818] overflow-hidden">
+        <div class="hidden @xl:grid grid-cols-[44px_1fr_150px_60px_90px] gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-[#a7a7a7]">
+          <span>No</span><span>Title</span><span>Sent</span><span>Files</span><span class="text-right">Status</span>
+        </div>
+        @for (c of rows(); track c.id; let i = $index) {
+          <div class="border-t border-white/5">
+            <button type="button" (click)="toggle(c)" [attr.aria-expanded]="openId() === c.id"
+              class="w-full grid grid-cols-[32px_1fr_auto] @xl:grid-cols-[44px_1fr_150px_60px_90px] gap-2 items-center px-4 py-2.5 text-left hover:bg-white/5">
+              <span class="text-sm text-[#a7a7a7] tabular-nums">{{ (state.page() - 1) * state.pageSize + i + 1 }}</span>
+              <span class="min-w-0">
+                <span class="block text-sm font-bold truncate">
+                  {{ c.title }}
+                  @if (c.replies?.length) { <span class="ml-1 text-xs font-normal text-[#a7a7a7]">💬 {{ c.replies.length }}</span> }
+                  @if (adminReplied(c)) { <span class="ml-1 rounded-full bg-[#1ed760] text-black text-[10px] font-extrabold px-1.5 py-px align-middle">Admin replied</span> }
+                </span>
+                <span class="block text-xs text-[#a7a7a7] truncate @xl:hidden">{{ dateOf(c) }}</span>
+              </span>
+              <span class="hidden @xl:block text-xs text-[#a7a7a7]">{{ dateOf(c) }}</span>
+              <span class="hidden @xl:block text-xs text-[#b3b3b3] tabular-nums">{{ c.files.length || '—' }}</span>
+              <span class="text-right">
+                <span [class]="c.status === 'resolved' ? 'bg-[#1ed760]/20 text-[#1ed760]' : 'bg-amber-400/15 text-amber-300'"
+                  class="rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize">{{ c.status }}</span>
+              </span>
+            </button>
+            @if (openId() === c.id) {
+              <div class="px-4 pb-4 @xl:pl-[60px]">
+                <app-contact-thread [contact]="c" (changed)="onChanged($event)" />
+              </div>
+            }
+          </div>
+        } @empty {
+          <p class="px-4 py-8 text-center text-sm text-[#b3b3b3]">
+            {{ list().length ? 'No contacts match these filters.' : 'You have not sent any contacts yet.' }}
+          </p>
+        }
+      </div>
+
+      <div class="flex items-center justify-center gap-3 mt-4 text-sm">
+        <button type="button" (click)="state.page.set(state.page() - 1); state.clamp(filtered().length)" [disabled]="state.page() <= 1"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Previous page">‹</button>
+        <span class="flex items-center gap-1 text-[#b3b3b3]">
+          <input [ngModel]="state.page()" (ngModelChange)="state.goTo($event, filtered().length)"
+            class="w-12 rounded bg-white/10 text-center text-white tabular-nums px-1 py-0.5 outline-none focus:ring-1 focus:ring-white" aria-label="Current page" />
+          <span>/ {{ state.pages(filtered().length) }} · {{ filtered().length }} total</span>
+        </span>
+        <button type="button" (click)="state.page.set(state.page() + 1); state.clamp(filtered().length)" [disabled]="state.page() >= state.pages(filtered().length)"
+          class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Next page">›</button>
+      </div>
+    }
+  }
+</div>

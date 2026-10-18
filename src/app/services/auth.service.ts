@@ -9,7 +9,7 @@ export interface AuthUser {
   email: string | null;
   name: string;
   provider: 'email';
-  role?: 'admin' | 'user';
+  role?: 'admin' | 'artist' | 'user';
   phone?: string | null;
   createdAt: string;
 }
@@ -35,9 +35,11 @@ export class AuthService {
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
   readonly loggedIn = computed(() => this.user() !== null);
+  /** Resolves once a saved session has been checked (route guards wait for it on page load). */
+  readonly ready: Promise<void>;
 
   constructor() {
-    if (this.token) void this.restore();
+    this.ready = this.token ? this.restore() : Promise.resolve();
   }
 
   clearError(): void {

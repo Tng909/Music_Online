@@ -42,3 +42,6 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Files attached to contact requests (private, not committed)
+/server/uploads

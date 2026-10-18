@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from './guards/admin.guard';
+import { artistGuard } from './guards/artist.guard';
 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/home/home').then((m) => m.Home) },
@@ -9,6 +10,12 @@ export const routes: Routes = [
   { path: 'downloads', loadComponent: () => import('./pages/downloads/downloads').then((m) => m.Downloads) },
   { path: 'liked', loadComponent: () => import('./pages/liked/liked').then((m) => m.Liked) },
   { path: 'account', loadComponent: () => import('./pages/account/account').then((m) => m.Account) },
+  { path: 'contact', loadComponent: () => import('./pages/contact/contact').then((m) => m.ContactPage) },
+  {
+    path: 'studio',
+    canActivate: [artistGuard],
+    loadComponent: () => import('./pages/studio/studio').then((m) => m.StudioPage),
+  },
   {
     path: 'admin',
     canActivate: [adminGuard],

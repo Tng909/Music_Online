@@ -8,8 +8,9 @@ import { AdminArtists } from './artists/artists';
 import { AdminPlaylists } from './playlists/playlists';
 import { AdminAccounts } from './accounts/accounts';
 import { AdminHistory } from './history/history';
+import { AdminContacts } from './contacts/contacts';
 
-export type AdminTab = 'dashboard' | 'songs' | 'artists' | 'playlists' | 'accounts' | 'history';
+export type AdminTab = 'dashboard' | 'songs' | 'artists' | 'playlists' | 'accounts' | 'contacts' | 'history';
 
 const TABS: Array<{ id: AdminTab; label: string; icon: string }> = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -17,12 +18,13 @@ const TABS: Array<{ id: AdminTab; label: string; icon: string }> = [
   { id: 'artists', label: 'Artists', icon: '🎤' },
   { id: 'playlists', label: 'Playlists', icon: '🎧' },
   { id: 'accounts', label: 'Accounts', icon: '👥' },
+  { id: 'contacts', label: 'Contacts', icon: '✉️' },
   { id: 'history', label: 'History', icon: '📜' },
 ];
 
 @Component({
   selector: 'app-admin',
-  imports: [AdminDashboard, AdminSongs, AdminArtists, AdminPlaylists, AdminAccounts, AdminHistory],
+  imports: [AdminDashboard, AdminSongs, AdminArtists, AdminPlaylists, AdminAccounts, AdminContacts, AdminHistory],
   templateUrl: './admin.html',
 })
 export class AdminPage {

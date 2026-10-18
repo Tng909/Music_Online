@@ -36,6 +36,10 @@ export class AdminHistory {
     'playlist.create',
     'playlist.update',
     'playlist.delete',
+    'contact.create',
+    'contact.reply',
+    'contact.status',
+    'contact.delete',
   ];
 
   constructor() {

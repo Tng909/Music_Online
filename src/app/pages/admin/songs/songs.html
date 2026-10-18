@@ -59,7 +59,29 @@
 @if (modalOpen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" (click)="closeModal()">
     <div class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-[#282828] p-6" (click)="$event.stopPropagation()">
-      <h2 class="text-xl font-extrabold mb-4">{{ editingId() ? 'Edit song' : 'Add song' }}</h2>
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <h2 class="text-xl font-extrabold">{{ editingId() ? 'Edit song' : 'Add song' }}</h2>
+        @if (!editingId()) {
+          <label title="Pick a folder with 1 cover image + 1 song file"
+            class="flex items-center gap-1.5 rounded-full border border-white/30 px-3.5 py-1.5 text-xs font-bold cursor-pointer hover:border-white hover:scale-105 transition focus-within:ring-1 focus-within:ring-white">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+            Add folder
+            <input type="file" webkitdirectory multiple (change)="onFolder($event)" class="sr-only" />
+          </label>
+        }
+      </div>
+
+      @if (fFromFolder(); as ff) {
+        <div class="rounded-md border border-[#1ed760]/40 bg-[#1ed760]/10 px-3 py-2.5 mb-4 text-xs">
+          <p class="font-bold text-[#1ed760]">Filled in from folder “{{ ff.folder }}”</p>
+          <p class="text-[#b3b3b3] mt-0.5 truncate">Cover: {{ ff.cover }} · Song: {{ ff.audio }}</p>
+          <p class="text-[#b3b3b3] mt-0.5">Check the fields below, change anything you like, then add the song.</p>
+          <div class="flex gap-3 mt-2">
+            <button type="button" (click)="fFromFolder.set(null)" class="font-bold text-white hover:underline">Looks good</button>
+            <button type="button" (click)="undoFolder()" class="font-bold text-[#f37c7c] hover:underline">Undo</button>
+          </div>
+        </div>
+      }
 
       <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Cover (file)</label>
       <div class="flex items-center gap-3 mb-3">
@@ -72,27 +94,40 @@
       </div>
 
       <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Title</label>
-      <input [ngModel]="fTitle()" (ngModelChange)="fTitle.set($event)" placeholder="Song title"
+      <input [ngModel]="fTitle()" (ngModelChange)="onTitleInput($event)" placeholder="Song title (defaults to the song file name)"
         class="w-full rounded-md bg-white/10 text-sm px-3 py-2.5 mb-1 outline-none focus:ring-1 focus:ring-white" />
       <p class="text-xs text-[#a7a7a7] mb-3">Beside the cover · Artist: {{ fPickedArtists().join(', ') || '—' }}</p>
 
-      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Artists (pick from database)</label>
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mb-1">Artists (pick from database or add new)</label>
       <div class="flex flex-wrap gap-1.5 mb-2">
         @for (a of fPickedArtists(); track a) {
           <span class="flex items-center gap-1 rounded-full bg-[#1ed760]/20 text-[#1ed760] text-xs font-bold px-2.5 py-1">
             {{ a }}
+            @if (isNewArtist(a)) {
+              <span class="rounded-sm bg-[#1ed760] text-black text-[9px] font-extrabold px-1 leading-tight" title="New artist — created when the song is saved">NEW</span>
+            }
             <button type="button" (click)="removeArtist(a)" class="hover:text-white" aria-label="Remove artist">✕</button>
           </span>
         }
       </div>
-      <input [ngModel]="fArtistQuery()" (ngModelChange)="fArtistQuery.set($event)" placeholder="Type to find artist…"
+      <input [ngModel]="fArtistQuery()" (ngModelChange)="fArtistQuery.set($event)" placeholder="Type to find or add an artist…"
+        (keydown.enter)="$event.preventDefault(); addArtist(fArtistQuery())"
         class="w-full rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
-      @if (artistSuggestions().length) {
-        <div class="mt-1 rounded-md bg-black/40 max-h-32 overflow-y-auto">
+      @if (artistSuggestions().length || newArtistName()) {
+        <div class="mt-1 rounded-md bg-black/40 max-h-40 overflow-y-auto">
+          @if (newArtistName(); as n) {
+            <button type="button" (click)="addArtist(n)"
+              class="w-full flex items-center gap-2 text-left px-3 py-1.5 text-sm hover:bg-white/10 border-b border-white/5">
+              <span class="w-5 h-5 shrink-0 rounded-full bg-[#1ed760] text-black flex items-center justify-center font-extrabold leading-none">+</span>
+              <span class="truncate">Add new artist “<span class="font-bold">{{ n }}</span>”</span>
+            </button>
+          }
           @for (s of artistSuggestions(); track s) {
             <button type="button" (click)="addArtist(s)" class="w-full text-left px-3 py-1.5 text-sm hover:bg-white/10">{{ s }}</button>
           }
         </div>
+      } @else if (fArtistQuery().trim()) {
+        <p class="mt-1 text-xs text-[#a7a7a7] px-1">Already picked.</p>
       }
 
       <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mt-4 mb-1">Song (file)</label>
@@ -114,6 +149,36 @@
           class="rounded-full bg-white text-black text-sm font-bold px-5 py-2 hover:scale-105 transition disabled:opacity-60">
           {{ fSaving() ? 'Saving…' : (editingId() ? 'Save' : 'Add song') }}
         </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Folder rejected: alert card (instead of a browser alert) -->
+@if (folderAlert(); as fa) {
+  <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60" (click)="folderAlert.set(null)">
+    <div role="alertdialog" aria-modal="true" aria-labelledby="folder-alert-title" aria-describedby="folder-alert-reason"
+      (click)="$event.stopPropagation()"
+      class="w-full max-w-sm rounded-xl bg-[#282828] p-5 shadow-2xl shadow-black/60 border border-white/10">
+      <div class="flex items-start gap-3">
+        <div class="w-9 h-9 shrink-0 rounded-full bg-red-500/15 text-[#f37c7c] flex items-center justify-center">
+          <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" d="M12 8v5m0 3.5v.01"/><circle cx="12" cy="12" r="9.5"/></svg>
+        </div>
+        <div class="min-w-0">
+          <h3 id="folder-alert-title" class="font-extrabold">Can’t use {{ fa.folder ? '“' + fa.folder + '”' : 'this folder' }}</h3>
+          <p id="folder-alert-reason" class="text-sm text-[#b3b3b3] mt-1">{{ fa.reason }}</p>
+        </div>
+      </div>
+      @if (fa.files.length) {
+        <ul class="mt-3 max-h-36 overflow-y-auto rounded-md bg-black/30 px-3 py-2 text-xs text-[#b3b3b3] space-y-0.5">
+          @for (f of fa.files; track $index) {
+            <li class="truncate">{{ f }}</li>
+          }
+        </ul>
+      }
+      <div class="flex justify-end mt-4">
+        <button type="button" (click)="folderAlert.set(null)" autofocus
+          class="rounded-full bg-white text-black text-sm font-bold px-5 py-2 hover:scale-105 transition">OK</button>
       </div>
     </div>
   </div>

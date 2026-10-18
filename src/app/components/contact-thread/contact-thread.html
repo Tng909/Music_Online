@@ -1,0 +1,93 @@
+@let c = contact();
+
+<ol class="flex flex-col gap-3">
+  <!-- First message (from the sender) -->
+  <li [class]="asAdmin() ? 'mr-8' : 'ml-8'" class="flex flex-col">
+    <p [class]="asAdmin() ? '' : 'text-right'" class="text-[11px] text-[#a7a7a7] mb-1">
+      <span class="font-bold text-[#d6d6d6]">{{ asAdmin() ? c.userName : 'You' }}</span> · {{ timeOf(c.createdAt) }}
+    </p>
+    <div [class]="asAdmin() ? 'bg-white/10 rounded-tl-sm' : 'bg-[#1ed760]/15 rounded-tr-sm'" class="rounded-lg px-3 py-2">
+      <p class="text-sm text-[#e6e6e6] whitespace-pre-wrap break-words">{{ c.detail }}</p>
+      @if (c.files.length) {
+        <div class="flex flex-wrap gap-2 mt-2">
+          @for (f of c.files; track f.id) {
+            <ng-container *ngTemplateOutlet="fileChip; context: { $implicit: f }" />
+          }
+        </div>
+      }
+    </div>
+  </li>
+
+  @for (r of c.replies ?? []; track r.id) {
+    <li [class]="mine(r) ? 'ml-8' : 'mr-8'" class="flex flex-col">
+      <p [class]="mine(r) ? 'text-right' : ''" class="text-[11px] text-[#a7a7a7] mb-1">
+        <span class="font-bold text-[#d6d6d6]">{{ mine(r) ? 'You' : r.authorName }}</span>
+        @if (r.fromAdmin) {
+          <span class="ml-1 rounded-sm bg-[#1ed760] text-black text-[9px] font-extrabold px-1">ADMIN</span>
+        }
+        · {{ timeOf(r.at) }}
+      </p>
+      <div [class]="mine(r) ? 'bg-[#1ed760]/15 rounded-tr-sm' : 'bg-white/10 rounded-tl-sm'" class="rounded-lg px-3 py-2">
+        @if (r.text) {
+          <p class="text-sm text-[#e6e6e6] whitespace-pre-wrap break-words">{{ r.text }}</p>
+        }
+        @if (r.files.length) {
+          <div class="flex flex-wrap gap-2" [class.mt-2]="r.text">
+            @for (f of r.files; track f.id) {
+              <ng-container *ngTemplateOutlet="fileChip; context: { $implicit: f }" />
+            }
+          </div>
+        }
+      </div>
+    </li>
+  }
+</ol>
+
+@if (c.status === 'resolved') {
+  <p class="mt-4 rounded-md bg-[#1ed760]/10 border border-[#1ed760]/30 px-3 py-2 text-xs text-[#b3b3b3]">
+    <span class="font-bold text-[#1ed760]">Resolved.</span>
+    {{ asAdmin() ? 'Replies are closed. Reopen it to continue the conversation.' : 'Replies are closed. Send a new contact if you need more help.' }}
+  </p>
+} @else {
+  <!-- Reply box -->
+  <div class="mt-4 rounded-md border border-white/10 p-3">
+    <label class="sr-only" [attr.for]="'reply-' + c.id">Reply</label>
+    <textarea [id]="'reply-' + c.id" [ngModel]="text()" (ngModelChange)="text.set($event)" rows="3" maxlength="5000"
+      (keydown.control.enter)="send()" (keydown.meta.enter)="send()"
+      [placeholder]="asAdmin() ? 'Reply to ' + c.userName + '…' : 'Reply to the admin…'"
+      class="w-full rounded-md bg-white/10 text-sm px-3 py-2 outline-none resize-y placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white"></textarea>
+    <div class="flex flex-wrap items-center gap-2 mt-2">
+      @for (f of files(); track f) {
+        <span class="flex items-center gap-1.5 rounded-full bg-white/10 text-xs px-3 py-1 max-w-full">
+          <span class="truncate max-w-[160px]">{{ f.name }}</span>
+          <span class="text-[#a7a7a7] tabular-nums">{{ bytes(f.size) }}</span>
+          <button type="button" (click)="removeFile(f)" class="text-[#b3b3b3] hover:text-white" [attr.aria-label]="'Remove ' + f.name">✕</button>
+        </span>
+      }
+      @if (files().length < maxFiles) {
+        <label class="flex items-center gap-1.5 rounded-full border border-white/30 px-3 py-1 text-xs font-bold cursor-pointer hover:border-white focus-within:ring-1 focus-within:ring-white">
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.5 12.6 20.9a5.5 5.5 0 0 1-7.8-7.8l8.5-8.5a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6L15.2 8"/></svg>
+          Attach
+          <input type="file" multiple (change)="onFiles($event)" class="sr-only" />
+        </label>
+      }
+      <button type="button" (click)="send()" [disabled]="sending()"
+        class="ml-auto rounded-full bg-white text-black text-xs font-bold px-4 py-1.5 hover:scale-105 transition disabled:opacity-60">
+        {{ sending() ? 'Sending…' : 'Send reply' }}
+      </button>
+    </div>
+  </div>
+}
+
+@if (error()) {
+  <p class="text-sm text-[#f37c7c] mt-2" role="alert">{{ error() }}</p>
+}
+
+<ng-template #fileChip let-f>
+  <button type="button" (click)="download(f)" title="Download"
+    class="flex items-center gap-1.5 rounded-full bg-black/30 hover:bg-black/50 text-xs px-3 py-1 max-w-full">
+    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 19h16"/></svg>
+    <span class="truncate max-w-[200px]">{{ f.name }}</span>
+    <span class="text-[#a7a7a7] tabular-nums">{{ bytes(f.size) }}</span>
+  </button>
+</ng-template>

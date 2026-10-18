@@ -13,6 +13,8 @@ export interface Track {
   coverUrl?: string | null;
   /** Path under public/, e.g. "/audio/blinding-lights.mp3" — null = simulated playback */
   audioUrl?: string | null;
+  /** Set on songs added together from an album folder: that album's cover. */
+  albumCoverUrl?: string | null;
   createdAt?: string;
 }
 

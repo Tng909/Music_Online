@@ -114,7 +114,8 @@ function createAdminRouter() {
       id: newId('s'),
       title: title.trim().slice(0, 120),
       artist: artist.trim().slice(0, 240),
-      album: typeof album === 'string' && album.trim() ? album.trim().slice(0, 120) : 'Single',
+      // No album: the song is its own single, named after the song.
+      album: typeof album === 'string' && album.trim() ? album.trim().slice(0, 120) : title.trim().slice(0, 120),
       duration: Math.round(dur),
       gradient: typeof gradient === 'string' && gradient ? gradient : 'from-zinc-700 to-zinc-950',
       emoji: typeof emoji === 'string' && emoji ? emoji : '🎵',
@@ -142,7 +143,7 @@ function createAdminRouter() {
       if (typeof artist !== 'string' || !artist.trim()) return res.status(400).json({ error: 'At least one artist is required.' });
       song.artist = artist.trim().slice(0, 240);
     }
-    if (album !== undefined) song.album = String(album || 'Single').slice(0, 120);
+    if (album !== undefined) song.album = String(album || '').trim().slice(0, 120) || song.title;
     if (duration !== undefined) {
       const dur = Number(duration);
       if (!Number.isFinite(dur) || dur <= 0) return res.status(400).json({ error: 'Duration must be positive.' });

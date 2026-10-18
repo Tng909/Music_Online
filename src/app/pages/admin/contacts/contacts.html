@@ -1,0 +1,96 @@
+<div class="flex flex-wrap items-center gap-2 mb-4">
+  <input [ngModel]="state.query()" (ngModelChange)="state.query.set($event); onFilter()"
+    placeholder="Search title, messages, sender, file…" aria-label="Search contacts"
+    class="flex-1 min-w-[180px] rounded-md bg-white/10 text-sm px-3 py-2 outline-none placeholder:text-[#8a8a8a] focus:ring-1 focus:ring-white" />
+  <select [ngModel]="state.status()" (ngModelChange)="state.status.set($event); onFilter()" aria-label="Status"
+    class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none">
+    <option value="all">All statuses</option>
+    <option value="open">Open ({{ openCount() }})</option>
+    <option value="resolved">Resolved</option>
+  </select>
+  <select [ngModel]="state.sort()" (ngModelChange)="state.sort.set($event); onFilter()" aria-label="Sort"
+    class="rounded-md bg-white/10 text-sm px-3 py-2 outline-none">
+    <option value="newest">Newest first</option>
+    <option value="oldest">Oldest first</option>
+  </select>
+  <button type="button" (click)="reload()" title="Reload"
+    class="rounded-md bg-white/10 hover:bg-white/20 text-sm px-3 py-2">↻</button>
+</div>
+
+@if (error()) {
+  <p class="rounded-md bg-red-500/10 border border-red-500/30 px-4 py-2 text-sm text-[#f37c7c] mb-3">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p class="text-sm text-[#b3b3b3] py-8 text-center">Loading contacts…</p>
+} @else {
+  <div class="@container rounded-lg bg-[#181818] overflow-hidden">
+    <div class="hidden @xl:grid grid-cols-[44px_1fr_160px_150px_90px] gap-2 px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-[#a7a7a7]">
+      <span>No</span><span>Title</span><span>From</span><span>Sent</span><span class="text-right">Status</span>
+    </div>
+    @for (c of rows(); track c.id; let i = $index) {
+      <div class="border-t border-white/5">
+        <button type="button" (click)="toggle(c)" [attr.aria-expanded]="openId() === c.id"
+          class="w-full grid grid-cols-[32px_1fr_auto] @xl:grid-cols-[44px_1fr_160px_150px_90px] gap-2 items-center px-4 py-2.5 text-left hover:bg-white/5">
+          <span class="text-sm text-[#a7a7a7] tabular-nums">{{ (state.page() - 1) * state.pageSize + i + 1 }}</span>
+          <span class="min-w-0">
+            <span class="block text-sm font-bold truncate">
+              {{ c.title }}
+              @if (c.files.length) { <span class="ml-1 text-xs font-normal text-[#a7a7a7]">📎 {{ c.files.length }}</span> }
+              @if (c.replies?.length) { <span class="ml-1 text-xs font-normal text-[#a7a7a7]">💬 {{ c.replies.length }}</span> }
+              @if (needsReply(c)) { <span class="ml-1 rounded-full bg-amber-300 text-black text-[10px] font-extrabold px-1.5 py-px align-middle">Needs reply</span> }
+            </span>
+            <span class="block text-xs text-[#a7a7a7] truncate @xl:hidden">{{ c.userName }} · {{ dateOf(c) }}</span>
+          </span>
+          <span class="hidden @xl:block min-w-0">
+            <span class="block text-xs font-bold truncate">{{ c.userName }}</span>
+            <span class="block text-[11px] text-[#a7a7a7] truncate">{{ c.userEmail }}</span>
+          </span>
+          <span class="hidden @xl:block text-xs text-[#a7a7a7]">{{ dateOf(c) }}</span>
+          <span class="text-right">
+            <span [class]="c.status === 'resolved' ? 'bg-[#1ed760]/20 text-[#1ed760]' : 'bg-amber-400/15 text-amber-300'"
+              class="rounded-full px-2.5 py-0.5 text-[11px] font-bold capitalize">{{ c.status }}</span>
+          </span>
+        </button>
+        @if (openId() === c.id) {
+          <div class="px-4 pb-4 @xl:pl-[60px]">
+            <app-contact-thread [contact]="c" [asAdmin]="true" (changed)="onChanged($event)" />
+            <div class="flex flex-wrap items-center gap-3 mt-4 text-xs font-bold">
+              @if (c.status === 'open') {
+                <button type="button" (click)="setStatus(c, 'resolved')" [disabled]="busyId() === c.id"
+                  class="rounded-full bg-[#1ed760] text-black px-4 py-1.5 hover:scale-105 transition disabled:opacity-50">Mark resolved</button>
+              } @else {
+                <button type="button" (click)="setStatus(c, 'open')" [disabled]="busyId() === c.id"
+                  class="rounded-full border border-white/30 px-4 py-1.5 hover:border-white disabled:opacity-50">Reopen</button>
+              }
+              @if (confirmDeleteId() === c.id) {
+                <span class="text-[#b3b3b3] font-normal">Delete this contact and its files?</span>
+                <button type="button" (click)="remove(c)" [disabled]="busyId() === c.id"
+                  class="rounded-full bg-red-500 text-black px-4 py-1.5 hover:bg-red-400 disabled:opacity-50">Delete</button>
+                <button type="button" (click)="confirmDeleteId.set(null)" class="text-[#b3b3b3] hover:text-white">Keep</button>
+              } @else {
+                <button type="button" (click)="confirmDeleteId.set(c.id)" class="text-[#f37c7c] hover:text-red-400">Delete</button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    } @empty {
+      <p class="px-4 py-8 text-center text-sm text-[#b3b3b3]">
+        {{ list().length ? 'No contacts match these filters.' : 'No contacts yet.' }}
+      </p>
+    }
+  </div>
+
+  <div class="flex items-center justify-center gap-3 mt-4 text-sm">
+    <button type="button" (click)="state.page.set(state.page() - 1); state.clamp(filtered().length)" [disabled]="state.page() <= 1"
+      class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Previous page">‹</button>
+    <span class="flex items-center gap-1 text-[#b3b3b3]">
+      <input [ngModel]="state.page()" (ngModelChange)="state.goTo($event, filtered().length)"
+        class="w-12 rounded bg-white/10 text-center text-white tabular-nums px-1 py-0.5 outline-none focus:ring-1 focus:ring-white" aria-label="Current page" />
+      <span>/ {{ state.pages(filtered().length) }} · {{ filtered().length }} total</span>
+    </span>
+    <button type="button" (click)="state.page.set(state.page() + 1); state.clamp(filtered().length)" [disabled]="state.page() >= state.pages(filtered().length)"
+      class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-40 transition" aria-label="Next page">›</button>
+  </div>
+}

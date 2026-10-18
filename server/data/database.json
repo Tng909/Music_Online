@@ -5,6 +5,19 @@
   },
   "songs": [
     {
+      "id": "s_mvdesr873dd77a",
+      "title": "Bad Apple!!!",
+      "artist": "Anira",
+      "album": "Single",
+      "duration": 219,
+      "gradient": "from-zinc-700 to-zinc-950",
+      "emoji": "🎵",
+      "explicit": false,
+      "coverUrl": "/covers/1792302773104-bad apple.jpg",
+      "audioUrl": "/audio/1792302773122-ãæ±æ¹ãBad Apple!! ï¼°ï¼¶ãå½±çµµã.mp3",
+      "createdAt": "2026-10-18T05:52:59.095Z"
+    },
+    {
       "id": "s1",
       "title": "Billie Jean",
       "artist": "Michael Jackson",
@@ -87,5 +100,17 @@
       "createdAt": "2026-10-17T09:47:54.969Z"
     }
   ],
-  "artists": []
+  "artists": [
+    {
+      "id": "a_mvdg1f4d384bf8",
+      "name": "ZUN",
+      "followers": "0",
+      "gradient": "from-zinc-700 to-zinc-950",
+      "emoji": "🎤",
+      "coverUrl": null,
+      "songIds": [],
+      "userId": "u_5b85f0400de4",
+      "createdAt": "2026-10-18T06:27:42.925Z"
+    }
+  ]
 }

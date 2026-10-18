@@ -1,0 +1,74 @@
+[
+  {
+    "id": "h_mvdg1f4eb35664",
+    "at": "2026-10-18T06:27:42.926Z",
+    "actor": "admin@ad.com",
+    "action": "user.role",
+    "entity": "u_5b85f0400de4",
+    "detail": "zun@zun.com: user → artist"
+  },
+  {
+    "id": "h_mvdg1f4d7f9045",
+    "at": "2026-10-18T06:27:42.925Z",
+    "actor": "system",
+    "action": "artist.create",
+    "entity": "a_mvdg1f4d384bf8",
+    "detail": "ZUN (role granted to zun@zun.com)"
+  },
+  {
+    "id": "h_mvdg19pya56cd5",
+    "at": "2026-10-18T06:27:35.926Z",
+    "actor": "admin@ad.com",
+    "action": "contact.status",
+    "entity": "c_mvdfonpcd3d497",
+    "detail": "I want become Artist → resolved"
+  },
+  {
+    "id": "h_mvdg18ot8969ef",
+    "at": "2026-10-18T06:27:34.589Z",
+    "actor": "admin@ad.com",
+    "action": "contact.reply",
+    "entity": "c_mvdfonpcd3d497",
+    "detail": "I want become Artist"
+  },
+  {
+    "id": "h_mvdfpbdlf8e3a5",
+    "at": "2026-10-18T06:18:18.201Z",
+    "actor": "admin@ad.com",
+    "action": "contact.status",
+    "entity": "c_mvdfonpcd3d497",
+    "detail": "I want become Artist → open"
+  },
+  {
+    "id": "h_mvdfp9wu2e141f",
+    "at": "2026-10-18T06:18:16.302Z",
+    "actor": "admin@ad.com",
+    "action": "contact.status",
+    "entity": "c_mvdfonpcd3d497",
+    "detail": "I want become Artist → resolved"
+  },
+  {
+    "id": "h_mvdfonpdf09a85",
+    "at": "2026-10-18T06:17:47.521Z",
+    "actor": "zun@zun.com",
+    "action": "contact.create",
+    "entity": "c_mvdfonpcd3d497",
+    "detail": "I want become Artist"
+  },
+  {
+    "id": "h_mvdfki0hf73244",
+    "at": "2026-10-18T06:14:33.521Z",
+    "actor": "zun@zun.com",
+    "action": "user.signup",
+    "entity": "u_5b85f0400de4",
+    "detail": "ZUN joined"
+  },
+  {
+    "id": "h_mvdesr8836c2d8",
+    "at": "2026-10-18T05:52:59.096Z",
+    "actor": "admin@ad.com",
+    "action": "song.create",
+    "entity": "s_mvdesr873dd77a",
+    "detail": "Bad Apple!!! — Anira"
+  }
+]

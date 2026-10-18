@@ -1,0 +1,25 @@
+[
+  {
+    "id": "c_mvdfonpcd3d497",
+    "userId": "u_5b85f0400de4",
+    "userName": "ZUN",
+    "userEmail": "zun@zun.com",
+    "title": "I want become Artist",
+    "detail": "Sir, I am Fake ZUN. But this is Demo. Let me become artist and add peak songs and albums. Trust me",
+    "files": [],
+    "status": "resolved",
+    "createdAt": "2026-10-18T06:17:47.520Z",
+    "updatedAt": "2026-10-18T06:27:35.925Z",
+    "replies": [
+      {
+        "id": "r_mvdg18os83ecb9",
+        "authorId": "u_admin000001",
+        "authorName": "Admin",
+        "fromAdmin": true,
+        "text": "Sure Twin",
+        "files": [],
+        "at": "2026-10-18T06:27:34.588Z"
+      }
+    ]
+  }
+]

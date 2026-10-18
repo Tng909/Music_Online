@@ -17,7 +17,9 @@
       "passwordHash": "c99e101fc67c22f4827de39790fdce1a:7e3dc697bd72237d90f8b8c84906eef25b8f76ba6d0cf8401cd5cbb124e44368c6491f3f2f3238fd91237d63a7c25b8f59971be979d6d42288e3c152276096a7",
       "phone": null,
       "createdAt": "2026-10-12T08:36:08.037Z",
-      "followedArtists": [],
+      "followedArtists": [
+        "toby-fox"
+      ],
       "savedPlaylists": [
         "p_mvc7r1097ace60"
       ]
@@ -40,6 +42,18 @@
       "passwordHash": "28d09719ff2b8ba178323177339f6146:4a7171b0e56bd2d82dcd340d9fd672793fef2088f005a88da8a94d5e3d74fa92a7d241a957bd0f8cb111d323f20dbaa351fd43ab70b8c5fc2f0297c3923f476c",
       "phone": null,
       "createdAt": "2026-10-14T00:58:00.000Z"
+    },
+    {
+      "id": "u_5b85f0400de4",
+      "email": "zun@zun.com",
+      "name": "ZUN",
+      "provider": "email",
+      "passwordHash": "17276937978117e700dee962bae705de:c677e2372cba94c5818d49d0acbb69480b94058aed2c506117411faf82ed3aefe899270a7ddb8ea81309efbe7cd1d46b15498fe0c5ada9bb50b0da2f34013dc4",
+      "phone": null,
+      "createdAt": "2026-10-18T06:14:33.518Z",
+      "role": "artist",
+      "followedArtists": [],
+      "savedPlaylists": []
     }
   ]
 }

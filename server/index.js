@@ -14,6 +14,8 @@ const cors = require('cors');
 const { createAuthRouter, requireAuth } = require('./auth');
 const { createAdminRouter } = require('./admin');
 const { createLibraryRouter, followerCounts } = require('./library');
+const { createContactsRouter } = require('./contacts');
+const { createStudioRouter } = require('./studio');
 const { readPlays, playCounts, withPlays, buildArtists } = require('./catalog');
 
 const app = express();
@@ -51,6 +53,12 @@ app.use('/api/admin', createAdminRouter());
 
 // ---- Your Library: follows, saved + created playlists (signed-in users) ----
 app.use('/api/library', createLibraryRouter());
+
+// ---- Contact requests: users send, admins review ----
+app.use('/api/contacts', createContactsRouter());
+
+// ---- Artist studio: artists manage their own songs + albums ----
+app.use('/api/studio', createStudioRouter());
 
 // ---- Songs (read-only) ----
 app.get('/api/songs', (_req, res) => {

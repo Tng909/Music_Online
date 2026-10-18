@@ -64,6 +64,16 @@ export class Topbar {
     void this.router.navigate(['/account']);
   }
 
+  goToContact(): void {
+    this.menuOpen.set(false);
+    void this.router.navigate(['/contact']);
+  }
+
+  goToStudio(): void {
+    this.menuOpen.set(false);
+    void this.router.navigate(['/studio']);
+  }
+
   goToAdmin(): void {
     this.menuOpen.set(false);
     void this.router.navigate(['/admin']);

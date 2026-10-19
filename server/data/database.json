@@ -257,6 +257,141 @@
       "createdAt": "2026-10-18T10:01:23.077Z"
     },
     {
+      "id": "s_mves5wsq59d255",
+      "title": "Take Me Home, Country Road",
+      "artist": "Unknown Artist",
+      "album": "Single",
+      "duration": 198,
+      "gradient": "from-zinc-700 to-zinc-950",
+      "emoji": "🎵",
+      "explicit": false,
+      "coverUrl": "/covers/1792385636298-Take Me Home, Country Roads.jpg",
+      "audioUrl": "/audio/1792386037671-Take Me Home, Country Roads_spotdown.org.mp3",
+      "createdAt": "2026-10-19T04:54:54.026Z",
+      "lyrics": [
+        {
+          "time": 7,
+          "text": "Almost heaven, West Virginia"
+        },
+        {
+          "time": 12,
+          "text": "Blue Ridge Mountains, Shenandoah River"
+        },
+        {
+          "time": 19,
+          "text": "Life is old there, older than the trees"
+        },
+        {
+          "time": 25,
+          "text": "Younger than the mountains, growin' like a breeze"
+        },
+        {
+          "time": 29,
+          "text": "Country roads, take me home"
+        },
+        {
+          "time": 33,
+          "text": "To the place I belong"
+        },
+        {
+          "time": 41,
+          "text": "West Virginia, Mountain Mama"
+        },
+        {
+          "time": 47,
+          "text": "Take me home, country roads"
+        },
+        {
+          "time": 54,
+          "text": "All my memories gather 'round her"
+        },
+        {
+          "time": 61,
+          "text": "Miner's lady, stranger to blue water"
+        },
+        {
+          "time": 68,
+          "text": "Dark and dusty, painted on the sky"
+        },
+        {
+          "time": 73,
+          "text": "Misty taste of moonshine, teardrops in my eyes"
+        },
+        {
+          "time": 78,
+          "text": "Country roads, take me home"
+        },
+        {
+          "time": 84,
+          "text": "To the place I belong"
+        },
+        {
+          "time": 89,
+          "text": "West Virginia, Mountain Mama"
+        },
+        {
+          "time": 95,
+          "text": "Take me home, country roads"
+        },
+        {
+          "time": 103,
+          "text": "I hear her voice, in the mornin' hour she calls me"
+        },
+        {
+          "time": 107,
+          "text": "Radio reminds me of my home far away"
+        },
+        {
+          "time": 113,
+          "text": "Drivin' down the road, I get a feelin'"
+        },
+        {
+          "time": 117,
+          "text": "That I should have been home yesterday, yesterday"
+        },
+        {
+          "time": 125,
+          "text": "Country roads, take me home"
+        },
+        {
+          "time": 130,
+          "text": "To the place I belong"
+        },
+        {
+          "time": 138,
+          "text": "West Virginia, Mountain Mama"
+        },
+        {
+          "time": 142,
+          "text": "Take me home, country roads, everybody sing"
+        },
+        {
+          "time": 146,
+          "text": "Country roads, take me home"
+        },
+        {
+          "time": 154,
+          "text": "To the place I belong"
+        },
+        {
+          "time": 160,
+          "text": "West Virginia, Mountain Mama"
+        },
+        {
+          "time": 166,
+          "text": "Take me home, country roads"
+        },
+        {
+          "time": 171,
+          "text": "Take me home down country roads"
+        },
+        {
+          "time": 177,
+          "text": "Take me home down country roads"
+        }
+      ]
+    },
+    {
       "id": "s_mvc7yeombdddd9",
       "title": "GIRLS' LEGEND U",
       "artist": "Unknown Artist",
@@ -293,6 +428,292 @@
       "explicit": false,
       "coverUrl": "/covers/BillieJean.jpg",
       "audioUrl": "/audio/Billie Jean_spotdown.org.mp3",
+      "lyrics": [
+        {
+          "time": 29.57,
+          "text": "She was more like a beauty queen from a movie scene"
+        },
+        {
+          "time": 33.2,
+          "text": "I said \"Don't mind, but what do you mean, I am the one\""
+        },
+        {
+          "time": 37.88,
+          "text": "Who will dance on the floor in the round?"
+        },
+        {
+          "time": 43.39,
+          "text": "She said I am the one"
+        },
+        {
+          "time": 46.02,
+          "text": "Who will dance on the floor in the round?"
+        },
+        {
+          "time": 53.17,
+          "text": "She told me her name was Billie Jean, as she caused a scene"
+        },
+        {
+          "time": 57.6,
+          "text": "Then every head turned with eyes that dreamed of being the one"
+        },
+        {
+          "time": 61.95,
+          "text": "Who will dance on the floor in the round?"
+        },
+        {
+          "time": 69.84,
+          "text": "People always told me \"be careful of what you do"
+        },
+        {
+          "time": 73.86,
+          "text": "And don't go around breakin' young girls' hearts\""
+        },
+        {
+          "time": 76.18,
+          "text": "(Hee-hee)"
+        },
+        {
+          "time": 77.88,
+          "text": "And mother always told me \"be careful of who you love"
+        },
+        {
+          "time": 81.34,
+          "text": "And be careful of what you do 'cause the lie becomes the truth\""
+        },
+        {
+          "time": 86.58,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 90.78,
+          "text": "She's just a girl who claims that I am the one"
+        },
+        {
+          "time": 96.48,
+          "text": "But the kid is not my son"
+        },
+        {
+          "time": 100.64,
+          "text": "She says I am the one"
+        },
+        {
+          "time": 104.74,
+          "text": "But the kid is not my son"
+        },
+        {
+          "time": 111.89,
+          "text": "For forty days and forty nights"
+        },
+        {
+          "time": 114.76,
+          "text": "The law was on her side"
+        },
+        {
+          "time": 115.62,
+          "text": "But who can stand when she's in demand her schemes and plans"
+        },
+        {
+          "time": 120.88,
+          "text": "'Cause we danced on the floor in the round"
+        },
+        {
+          "time": 125.32,
+          "text": "So take my strong advice, just remember to always think twice"
+        },
+        {
+          "time": 132.86,
+          "text": "(Do think twice, do think twice)"
+        },
+        {
+          "time": 135.8,
+          "text": "She told my baby we'd danced 'til three, then she looked at me"
+        },
+        {
+          "time": 140.67,
+          "text": "Then showed a photo my baby cried his eyes were like mine (oh, no)"
+        },
+        {
+          "time": 145.84,
+          "text": "'Cause we danced on the floor in the round, baby"
+        },
+        {
+          "time": 152.36,
+          "text": "People always told me"
+        },
+        {
+          "time": 153.96,
+          "text": "\"Be careful of what you do"
+        },
+        {
+          "time": 156.82,
+          "text": "And don't go around breaking young girls' hearts\""
+        },
+        {
+          "time": 160.29,
+          "text": "She came and stood right by me"
+        },
+        {
+          "time": 162.44,
+          "text": "Just the smell of sweet perfume"
+        },
+        {
+          "time": 164.63,
+          "text": "This happened much too soon"
+        },
+        {
+          "time": 166.87,
+          "text": "She called me to her room"
+        },
+        {
+          "time": 169.13,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 173.33,
+          "text": "She's just a girl who claims that I am the one"
+        },
+        {
+          "time": 178.64,
+          "text": "But the kid is not my son"
+        },
+        {
+          "time": 185.03,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 189.59,
+          "text": "She's just a girl who claims that I am the one"
+        },
+        {
+          "time": 194.9,
+          "text": "But the kid is not my son"
+        },
+        {
+          "time": 200.6,
+          "text": "She says I am the one"
+        },
+        {
+          "time": 203.17,
+          "text": "But the kid is not my son"
+        },
+        {
+          "time": 224.16,
+          "text": "She says I am the one"
+        },
+        {
+          "time": 227.23,
+          "text": "But the kid is not my son"
+        },
+        {
+          "time": 234.04,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 237.74,
+          "text": "She's just a girl who claims that I am the one"
+        },
+        {
+          "time": 243.53,
+          "text": "But the kid is not my son"
+        },
+        {
+          "time": 248.28,
+          "text": "She says I am the one"
+        },
+        {
+          "time": 251.48,
+          "text": "But the kid is not my son"
+        },
+        {
+          "time": 257.41,
+          "text": "She says I am the one"
+        },
+        {
+          "time": 258.84,
+          "text": "You know what you did (she says he is my son)"
+        },
+        {
+          "time": 262.5,
+          "text": "Breaking my heart babe"
+        },
+        {
+          "time": 264.98,
+          "text": "She says I am the one"
+        },
+        {
+          "time": 267.66,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 268.68,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 269.77,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 270.54,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 271.7,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 272.84,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 273.71,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 274.63,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 275.53,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 276.84,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 277.94,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 278.92,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 280.16,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 281.28,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 282.17,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 283.29,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 284.27,
+          "text": "Billie Jean is not my lover"
+        },
+        {
+          "time": 285.66,
+          "text": "Billie Jean is not my lover"
+        }
+      ],
       "createdAt": "2026-10-14T03:25:08.602Z"
     },
     {
@@ -306,6 +727,36 @@
       "explicit": false,
       "coverUrl": "/covers/DieWithASmile.jpg",
       "audioUrl": "/audio/Die With A Smile_spotdown.org.mp3",
+      "lyrics": [
+        {
+          "time": 0,
+          "text": "Die With A Smile"
+        },
+        {
+          "time": 5,
+          "text": "I woke up to the sound of silence"
+        },
+        {
+          "time": 10,
+          "text": "Bright stars in the sky"
+        },
+        {
+          "time": 15,
+          "text": "If the world was ending"
+        },
+        {
+          "time": 20,
+          "text": "I'd wanna be with you"
+        },
+        {
+          "time": 40,
+          "text": "Just hold me close"
+        },
+        {
+          "time": 45,
+          "text": "And die with a smile"
+        }
+      ],
       "createdAt": "2026-10-13T03:25:08.602Z"
     },
     {
@@ -319,7 +770,185 @@
       "explicit": false,
       "coverUrl": "/covers/TreatYouBetter.jpg",
       "audioUrl": "/audio/Treat You Better_spotdown.org.mp3",
-      "createdAt": "2026-10-12T03:25:08.602Z"
+      "createdAt": "2026-10-12T03:25:08.602Z",
+      "lyrics": [
+        {
+          "time": 12,
+          "text": "I won't lie to you"
+        },
+        {
+          "time": 17,
+          "text": "I know he's just not right for you"
+        },
+        {
+          "time": 23,
+          "text": "And you can tell me if I'm off"
+        },
+        {
+          "time": 24,
+          "text": "But I see it on your face"
+        },
+        {
+          "time": 26,
+          "text": "When you say that he's the one that you want"
+        },
+        {
+          "time": 29,
+          "text": "And you're spending all your time"
+        },
+        {
+          "time": 30,
+          "text": "In this wrong situation"
+        },
+        {
+          "time": 32,
+          "text": "And anytime you want it to stop"
+        },
+        {
+          "time": 34,
+          "text": "I know I can treat you better than he can"
+        },
+        {
+          "time": 40,
+          "text": "And any girl like you deserves a gentleman"
+        },
+        {
+          "time": 45,
+          "text": "Tell me, why are we wasting time"
+        },
+        {
+          "time": 47,
+          "text": "On all your wasted crying"
+        },
+        {
+          "time": 49,
+          "text": "When you should be with me instead?"
+        },
+        {
+          "time": 51,
+          "text": "I know I can treat you better"
+        },
+        {
+          "time": 56,
+          "text": "Better than he can"
+        },
+        {
+          "time": 58,
+          "text": "I'll stop time for you"
+        },
+        {
+          "time": 63,
+          "text": "The second you say you'd like me too"
+        },
+        {
+          "time": 69,
+          "text": "I just wanna give you the loving that you're missing"
+        },
+        {
+          "time": 72,
+          "text": "Baby, just to wake up with you"
+        },
+        {
+          "time": 75,
+          "text": "Would be everything I need, and this could be so different"
+        },
+        {
+          "time": 78,
+          "text": "Tell me what you want to do"
+        },
+        {
+          "time": 80,
+          "text": "'Cause I know I can treat you better than he can"
+        },
+        {
+          "time": 86,
+          "text": "And any girl like you deserves a gentleman"
+        },
+        {
+          "time": 92,
+          "text": "Tell me, why are we wasting time"
+        },
+        {
+          "time": 94,
+          "text": "On all your wasted crying"
+        },
+        {
+          "time": 95,
+          "text": "When you should be with me instead?"
+        },
+        {
+          "time": 98,
+          "text": "I know I can treat you better"
+        },
+        {
+          "time": 103,
+          "text": "Better than he can"
+        },
+        {
+          "time": 108,
+          "text": "Better than he can"
+        },
+        {
+          "time": 116,
+          "text": "Give me a sign"
+        },
+        {
+          "time": 118,
+          "text": "Take my hand, we'll be fine"
+        },
+        {
+          "time": 121,
+          "text": "Promise I won't let you down"
+        },
+        {
+          "time": 127,
+          "text": "Just know that you don't"
+        },
+        {
+          "time": 130,
+          "text": "Have to do this alone"
+        },
+        {
+          "time": 133,
+          "text": "Promise I'll never let you down"
+        },
+        {
+          "time": 138,
+          "text": "'Cause I know I can treat you better than he can"
+        },
+        {
+          "time": 144,
+          "text": "And any girl like you deserves a gentleman"
+        },
+        {
+          "time": 150,
+          "text": "Tell me, why are we wasting time"
+        },
+        {
+          "time": 151,
+          "text": "On all your wasted crying"
+        },
+        {
+          "time": 153,
+          "text": "When you should be with me instead?"
+        },
+        {
+          "time": 155,
+          "text": "I know I can treat you better"
+        },
+        {
+          "time": 160,
+          "text": "Better than he can, oh"
+        },
+        {
+          "time": 166,
+          "text": "Better than he can"
+        },
+        {
+          "time": 172,
+          "text": "Better than he can"
+        }
+      ]
     },
     {
       "id": "s4",
@@ -378,5 +1007,6 @@
       "userId": "u_5b85f0400de4",
       "createdAt": "2026-10-18T06:27:42.925Z"
     }
-  ]
+  ],
+  "albums": []
 }

@@ -1,5 +1,5 @@
 /** Test-only catalog. The app itself only shows real data from the backend. */
-import type { Artist, Playlist, Track } from '../app/data/music-data';
+import type { Artist, LyricLine, Playlist, Track } from '../app/data/music-data';
 
 const t = (
   id: string,
@@ -11,7 +11,8 @@ const t = (
   gradient: string,
   emoji: string,
   explicit = false,
-): Track => ({ id, title, artist, album, duration, plays, gradient, emoji, explicit });
+  lyrics: LyricLine[] = [],
+): Track => ({ id, title, artist, album, duration, plays, gradient, emoji, explicit, lyrics });
 
 export const TRACKS: Track[] = [
   t('t1', 'Blinding Lights', 'The Weeknd', 'After Hours', 203, 4200, 'from-rose-500 to-orange-400', '🌃', true),

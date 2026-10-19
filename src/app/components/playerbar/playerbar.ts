@@ -19,6 +19,8 @@ export class Playerbar {
   track = this.player.currentTrack;
   isPlaying = this.player.isPlaying;
   progress = this.player.progress;
+  lyrics = this.player.lyrics;
+  currentLyricLine = this.player.currentLyricLine;
   volume = this.player.volume;
   isMuted = this.player.isMuted;
   isShuffled = this.player.isShuffled;

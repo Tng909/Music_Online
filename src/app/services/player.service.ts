@@ -1,5 +1,5 @@
 import { Injectable, Injector, computed, inject, signal } from '@angular/core';
-import { QueueSource, Track } from '../data/music-data';
+import { QueueSource, Track, LyricLine } from '../data/music-data';
 
 export type RepeatMode = 'off' | 'all' | 'one';
 
@@ -55,6 +55,20 @@ export class PlayerService {
   readonly currentTrack = signal<Track | null>(null);
   readonly isPlaying = signal(false);
   readonly progress = signal(0); // seconds into current track
+  /** Synced lyrics of the current track (time-ordered). */
+  readonly lyrics = computed(() => this.currentTrack()?.lyrics ?? null);
+  /** The lyric line to show at the current playback position; null when nothing has started yet. */
+  readonly currentLyricLine = computed<LyricLine | null>(() => {
+    const lines = this.currentTrack()?.lyrics;
+    if (!lines?.length) return null;
+    const pos = this.progress();
+    let current: LyricLine | null = null;
+    for (const line of lines) {
+      if (line.time <= pos) current = line;
+      else break;
+    }
+    return current;
+  });
   readonly volume = signal(70);
   readonly isMuted = signal(false);
   readonly isShuffled = signal(false);

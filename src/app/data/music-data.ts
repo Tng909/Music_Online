@@ -1,3 +1,9 @@
+/** One line of synced lyrics: shown when playback reaches `time` (seconds). */
+export interface LyricLine {
+  time: number; // seconds into the track
+  text: string;
+}
+
 export interface Track {
   id: string;
   title: string;
@@ -15,6 +21,8 @@ export interface Track {
   audioUrl?: string | null;
   /** Set on songs added together from an album folder: that album's cover. */
   albumCoverUrl?: string | null;
+  /** Synced lyrics, oldest first. Null/empty = no lyrics for this track. */
+  lyrics?: LyricLine[] | null;
   createdAt?: string;
 }
 

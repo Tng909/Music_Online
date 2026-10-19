@@ -92,7 +92,7 @@ describe('Topbar account menu', () => {
     const menu = el.querySelector('[role="menu"]')!;
     expect(menu).toBeTruthy();
     const items = [...menu.querySelectorAll('[role="menuitem"]')].map((b) => b.textContent?.trim());
-    expect(items).toEqual(['Account', 'Log out']);
+    expect(items).toEqual(['Account', 'Contact', 'Log out']);
   });
 
   it('no longer shows the name, Install App, or an inline Log out button', () => {

@@ -142,6 +142,11 @@
         <p class="text-xs text-[#a7a7a7] mt-1 truncate">{{ fAudioName() }} · duration auto-calculated</p>
       }
 
+      <label class="block text-xs font-bold uppercase tracking-widest text-[#a7a7a7] mt-4 mb-1">Synced lyrics</label>
+      <textarea [ngModel]="fLyrics()" (ngModelChange)="fLyrics.set($event)" placeholder="[00:29.57] Lyric text here"
+        class="w-full rounded-md bg-white/10 text-sm px-3 py-2.5 mb-1 outline-none focus:ring-1 focus:ring-white" rows="4"></textarea>
+      <p class="text-xs text-[#a7a7a7] mb-3">Example: [00:29.57] She was more like a beauty queen / [00:33.20] I said Dont mind, but what do you mean, I am the one. One line per entry: [mm:ss.xx] followed by lyric text. Blank lines ignored, sorted automatically.</p>
+
       @if (fError()) {
         <p class="text-sm text-[#f37c7c] mt-3">{{ fError() }}</p>
       }

@@ -209,6 +209,50 @@ describe('PlayerService', () => {
   });
 });
 
+describe('PlayerService synced lyrics', () => {
+  let player: PlayerService;
+
+  beforeEach(() => {
+    player = new PlayerService();
+    player.setLibrary(TRACKS);
+  });
+
+  afterEach(() => player.destroy());
+
+  it('shows nothing before the first lyric time', () => {
+    const track = { ...TRACKS[0], lyrics: [{ time: 5, text: 'Hello' }] };
+    player.playTrack(track, [track]);
+    expect(player.currentLyricLine()).toBeNull();
+    expect(player.lyrics()).toEqual([{ time: 5, text: 'Hello' }]);
+  });
+
+  it('shows the lyric line matching the playback position', () => {
+    const track = { ...TRACKS[0], lyrics: [{ time: 0, text: 'First' }, { time: 12, text: 'Second' }] };
+    player.playTrack(track, [track]);
+    expect(player.currentLyricLine()?.text).toBe('First');
+    player.seekTo(12);
+    expect(player.currentLyricLine()?.text).toBe('Second');
+    player.seekTo(0);
+    expect(player.currentLyricLine()?.text).toBe('First');
+  });
+
+  it('returns null for tracks without lyrics', () => {
+    const track = { ...TRACKS[0] };
+    delete track.lyrics;
+    player.playTrack(track, TRACKS);
+    expect(player.currentLyricLine()).toBeNull();
+    expect(player.lyrics()).toBeNull();
+  });
+
+  it('clears the lyric when the track changes', () => {
+    const withLyrics = { ...TRACKS[0], lyrics: [{ time: 0, text: 'Hey' }] };
+    player.playTrack(withLyrics, [withLyrics]);
+    expect(player.currentLyricLine()?.text).toBe('Hey');
+    player.next();
+    expect(player.currentLyricLine()).toBeNull();
+  });
+});
+
 describe('PlayerService media session (earbuds / hardware keys)', () => {
   const handlers: Record<string, (details?: Record<string, unknown>) => void> = {};
   let metadata: { title: string; artist: string; album: string } | null = null;

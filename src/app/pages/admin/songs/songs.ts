@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AdminService, AdminTabState } from '../../../services/admin.service';
 import { MusicService } from '../../../services/music.service';
-import { Track, formatTime } from '../../../data/music-data';
+import { Track, formatTime, LyricLine } from '../../../data/music-data';
 import { FolderAlert, isFolderAlert, readDuration, readSongFolder } from '../../../data/folder-pick';
 import { readEmbeddedCover } from '../../../data/embedded-cover';
 
@@ -43,6 +43,7 @@ export class AdminSongs {
   /** Set after "Add folder" fills the form, so the admin can keep or undo it. */
   fFromFolder = signal<{ folder: string; cover: string; audio: string } | null>(null);
   folderAlert = signal<FolderAlert | null>(null);
+  fLyrics = signal('');
   fSaving = signal(false);
   fError = signal<string | null>(null);
 
@@ -125,6 +126,7 @@ export class AdminSongs {
     this.fTitleAuto.set(false);
     this.fCoverAuto.set(false);
     this.fFromFolder.set(null);
+    this.fLyrics.set('');
     this.fError.set(null);
     this.modalOpen.set(true);
   }
@@ -143,6 +145,7 @@ export class AdminSongs {
     this.fTitleAuto.set(false);
     this.fCoverAuto.set(false);
     this.fFromFolder.set(null);
+    this.fLyrics.set((t.lyrics ?? []).map((l) => `${formatTime(l.time)} ${l.text}`).join('\n'));
     this.fError.set(null);
     this.modalOpen.set(true);
   }
@@ -270,6 +273,22 @@ export class AdminSongs {
     }
   }
 
+  /** "mm:ss[.xx] text" lines -> [{time, text}], sorted by time. Blank lines ignored.
+   * Accepts "[1:10.5] text" or plain "1:10 text". Fractions of a second are kept as decimals. */
+  private parseLyrics(raw: string): LyricLine[] {
+    const lines: LyricLine[] = [];
+    for (const rawLine of raw.split(/\r?\n/)) {
+      const line = rawLine.trim();
+      if (!line) continue;
+      const m = line.match(/^\[?(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]?\s*(.*)$/);
+      if (!m) continue;
+      const time = Number(m[1]) * 60 + Number(m[2]) + Number('0.' + (m[3] ?? '0'));
+      const text = m[4].trim();
+      if (text) lines.push({ time, text });
+    }
+    return lines.sort((a, b) => a.time - b.time);
+  }
+
   async save(): Promise<void> {
     this.fError.set(null);
     const title = this.fTitle().trim();
@@ -295,6 +314,7 @@ export class AdminSongs {
         duration: this.fDuration(),
         coverUrl: this.fCoverUrl(),
         audioUrl: this.fAudioUrl(),
+        lyrics: this.parseLyrics(this.fLyrics()),
       };
       const id = this.editingId();
       if (id) await this.admin.updateSong(id, body);

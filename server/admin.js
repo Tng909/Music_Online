@@ -100,7 +100,7 @@ function createAdminRouter() {
 
   // ---- Songs ----
   router.post('/songs', requireAdmin, (req, res) => {
-    const { title, artist, album, duration, gradient, emoji, explicit, coverUrl, audioUrl } = req.body || {};
+    const { title, artist, album, duration, gradient, emoji, explicit, coverUrl, audioUrl, lyrics } = req.body || {};
     if (typeof title !== 'string' || !title.trim()) {
       return res.status(400).json({ error: 'Song title is required.' });
     }
@@ -110,6 +110,17 @@ function createAdminRouter() {
     const dur = Number(duration);
     if (!Number.isFinite(dur) || dur <= 0) {
       return res.status(400).json({ error: 'Duration must be a positive number of seconds.' });
+    }
+    let lyricLines = null;
+    if (lyrics !== undefined) {
+      if (!Array.isArray(lyrics)) {
+        return res.status(400).json({ error: 'Lyrics must be an array of {time, text}.' });
+      }
+      lyricLines = lyrics
+        .filter((l) => l && typeof l.time === 'number' && typeof l.text === 'string')
+        .map((l) => ({ time: Math.max(0, Math.round(l.time)), text: String(l.text).slice(0, 500) }))
+        .sort((a, b) => a.time - b.time);
+      if (!lyricLines.length) lyricLines = null;
     }
     const db = readDb();
     const song = {
@@ -124,6 +135,7 @@ function createAdminRouter() {
       explicit: explicit === true,
       coverUrl: typeof coverUrl === 'string' && coverUrl ? coverUrl : null,
       audioUrl: typeof audioUrl === 'string' && audioUrl ? audioUrl : null,
+      lyrics: lyricLines,
       createdAt: isoNow(),
     };
     db.songs.unshift(song);
@@ -136,7 +148,7 @@ function createAdminRouter() {
     const db = readDb();
     const song = db.songs.find((s) => s.id === req.params.id);
     if (!song) return res.status(404).json({ error: 'Song not found.' });
-    const { title, artist, album, duration, gradient, emoji, explicit, coverUrl, audioUrl } = req.body || {};
+    const { title, artist, album, duration, gradient, emoji, explicit, coverUrl, audioUrl, lyrics } = req.body || {};
     if (title !== undefined) {
       if (typeof title !== 'string' || !title.trim()) return res.status(400).json({ error: 'Song title is required.' });
       song.title = title.trim().slice(0, 120);
@@ -156,6 +168,14 @@ function createAdminRouter() {
     if (explicit !== undefined) song.explicit = explicit === true;
     if (coverUrl !== undefined) song.coverUrl = coverUrl || null;
     if (audioUrl !== undefined) song.audioUrl = audioUrl || null;
+    if (lyrics !== undefined) {
+      if (!Array.isArray(lyrics)) return res.status(400).json({ error: 'Lyrics must be an array of {time, text}.' });
+      const lyricLines = lyrics
+        .filter((l) => l && typeof l.time === 'number' && typeof l.text === 'string')
+        .map((l) => ({ time: Math.max(0, Math.round(l.time)), text: String(l.text).slice(0, 500) }))
+        .sort((a, b) => a.time - b.time);
+      song.lyrics = lyricLines.length ? lyricLines : null;
+    }
     writeDb(db);
     appendHistory({ actor: req.user.email, action: 'song.update', entity: song.id, detail: `${song.title} — ${song.artist}` });
     res.json(song);

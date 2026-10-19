@@ -42,8 +42,11 @@
     }
   </div>
 
-  <!-- Center: controls + progress -->
+  <!-- Center: synced lyric + controls + progress -->
   <div class="flex flex-col items-center gap-1.5 flex-1 max-w-[720px]">
+    @if (currentLyricLine(); as line) {
+      <p class="w-full text-sm font-medium text-white text-center truncate">{{ line.text }}</p>
+    }
     <div class="flex items-center gap-4 sm:gap-6">
       <button (click)="player.toggleShuffle()" [title]="'Shuffle: ' + (isShuffled() ? 'on' : 'off')"
         [class]="isShuffled() ? 'text-[#1ed760]' : 'text-[#b3b3b3] hover:text-white'"

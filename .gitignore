@@ -45,3 +45,6 @@ Thumbs.db
 
 # Files attached to contact requests (private, not committed)
 /server/uploads
+
+# Play log: runtime data written on every play (counts are computed from it)
+server/data/plays.json

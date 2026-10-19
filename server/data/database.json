@@ -729,32 +729,164 @@
       "audioUrl": "/audio/Die With A Smile_spotdown.org.mp3",
       "lyrics": [
         {
-          "time": 0,
-          "text": "Die With A Smile"
+          "time": 3,
+          "text": "Ooh, ooh"
         },
         {
-          "time": 5,
-          "text": "I woke up to the sound of silence"
+          "time": 9,
+          "text": "I, I just woke up from a dream"
         },
         {
-          "time": 10,
-          "text": "Bright stars in the sky"
-        },
-        {
-          "time": 15,
-          "text": "If the world was ending"
+          "time": 16,
+          "text": "But you and I had to say goodbye"
         },
         {
           "time": 20,
-          "text": "I'd wanna be with you"
+          "text": "And I don't know what it all means"
         },
         {
-          "time": 40,
-          "text": "Just hold me close"
+          "time": 25,
+          "text": "But since I survived, I realized"
+        },
+        {
+          "time": 29,
+          "text": "Wherever you go, that's where I'll follow"
+        },
+        {
+          "time": 34,
+          "text": "Nobody's promised tomorrow"
+        },
+        {
+          "time": 39,
+          "text": "So I'ma love you every night like it's the last night"
+        },
+        {
+          "time": 43,
+          "text": "Like it's the last night"
         },
         {
           "time": 45,
+          "text": "If the world was ending, I'd wanna be next to you"
+        },
+        {
+          "time": 54,
+          "text": "If the party was over and our time on Earth was through"
+        },
+        {
+          "time": 63,
+          "text": "I'd wanna hold you just for a while"
+        },
+        {
+          "time": 68,
           "text": "And die with a smile"
+        },
+        {
+          "time": 72,
+          "text": "If the world was ending, I'd wanna be next to you"
+        },
+        {
+          "time": 81,
+          "text": "(Ooh, ooh)"
+        },
+        {
+          "time": 85,
+          "text": "Oh-ooh, lost, lost in the words that we scream"
+        },
+        {
+          "time": 93,
+          "text": "I don't even wanna do this anymore"
+        },
+        {
+          "time": 98,
+          "text": "'Cause you already know what you mean to me"
+        },
+        {
+          "time": 101,
+          "text": "And our love's the only one worth fighting for"
+        },
+        {
+          "time": 107,
+          "text": "Wherever you go, that's where I'll follow"
+        },
+        {
+          "time": 112,
+          "text": "Nobody's promised tomorrow"
+        },
+        {
+          "time": 116,
+          "text": "So I'ma love you every night like it's the last night"
+        },
+        {
+          "time": 120,
+          "text": "Like it's the last night"
+        },
+        {
+          "time": 122,
+          "text": "If the world was ending, I'd wanna be next to you"
+        },
+        {
+          "time": 131,
+          "text": "If the party was over and our time on Earth was through"
+        },
+        {
+          "time": 140,
+          "text": "I'd wanna hold you just for a while"
+        },
+        {
+          "time": 145,
+          "text": "And die with a smile"
+        },
+        {
+          "time": 150,
+          "text": "If the world was ending, I'd wanna be next to you"
+        },
+        {
+          "time": 158,
+          "text": "Right next to you"
+        },
+        {
+          "time": 163,
+          "text": "Next to you"
+        },
+        {
+          "time": 168,
+          "text": "Right next to you"
+        },
+        {
+          "time": 171,
+          "text": "Oh-oh, oh"
+        },
+        {
+          "time": 191,
+          "text": "If the world was ending, I'd wanna be next to you"
+        },
+        {
+          "time": 200,
+          "text": "If the party was over and our time on Earth was through"
+        },
+        {
+          "time": 209,
+          "text": "I'd wanna hold you just for a while"
+        },
+        {
+          "time": 214,
+          "text": "And die with a smile"
+        },
+        {
+          "time": 218,
+          "text": "If the world was ending, I'd wanna be next to you"
+        },
+        {
+          "time": 227,
+          "text": "If the world was ending, I'd wanna be next to you"
+        },
+        {
+          "time": 236,
+          "text": "Ooh, ooh"
+        },
+        {
+          "time": 239,
+          "text": "I'd wanna be next to you"
         }
       ],
       "createdAt": "2026-10-13T03:25:08.602Z"
@@ -974,7 +1106,141 @@
       "explicit": false,
       "coverUrl": "/covers/VoyagingStarFarewell.jpg",
       "audioUrl": "/audio/Voyaging Star's Farewell_spotdown.org.mp3",
-      "createdAt": "2026-10-10T03:25:08.602Z"
+      "createdAt": "2026-10-10T03:25:08.602Z",
+      "lyrics": [
+        {
+          "time": 24,
+          "text": "That snowflake once fell on my nose"
+        },
+        {
+          "time": 29,
+          "text": "Now flying backwards to last winter"
+        },
+        {
+          "time": 35,
+          "text": "I realize that hellos are goodbyes"
+        },
+        {
+          "time": 40,
+          "text": "The moment I softly let go of your hand"
+        },
+        {
+          "time": 46,
+          "text": "Winds hum through the trembling branches"
+        },
+        {
+          "time": 51,
+          "text": "A song for a soul bound to soar to"
+        },
+        {
+          "time": 55,
+          "text": "The very edge of the starry ocean"
+        },
+        {
+          "time": 59,
+          "text": "Even if we're meant to fall apart"
+        },
+        {
+          "time": 63,
+          "text": "I will gaze at where you are for all time"
+        },
+        {
+          "time": 68,
+          "text": "Bon voyage"
+        },
+        {
+          "time": 71,
+          "text": "May your path be clear"
+        },
+        {
+          "time": 74,
+          "text": "May you get to where dreams are all crystalline and sweet"
+        },
+        {
+          "time": 81,
+          "text": "Please crack a littlе smile"
+        },
+        {
+          "time": 85,
+          "text": "You won't be alone"
+        },
+        {
+          "time": 87,
+          "text": "In this world you'vе chosen as your own"
+        },
+        {
+          "time": 92,
+          "text": "Don't worry"
+        },
+        {
+          "time": 94,
+          "text": "I'm well aware that all snowflakes melt in the end"
+        },
+        {
+          "time": 103,
+          "text": "Which is sign of warmth and hope of spring"
+        },
+        {
+          "time": 108,
+          "text": "So I'll dance flamboyantly into that good night"
+        },
+        {
+          "time": 125,
+          "text": "Bon voyage"
+        },
+        {
+          "time": 128,
+          "text": "May your path be clear"
+        },
+        {
+          "time": 131,
+          "text": "May you get to where dreams are all crystalline and sweet"
+        },
+        {
+          "time": 138,
+          "text": "Please crack a little smile"
+        },
+        {
+          "time": 142,
+          "text": "You won't be alone"
+        },
+        {
+          "time": 145,
+          "text": "In this world you've chosen as your own"
+        },
+        {
+          "time": 149,
+          "text": "Timing is such a dazzling riddle"
+        },
+        {
+          "time": 155,
+          "text": "Guess I'll spend my whole life unraveling it"
+        },
+        {
+          "time": 161,
+          "text": "Though it might cost me everything I have"
+        },
+        {
+          "time": 166,
+          "text": "I never regret it; wouldn't have it any other way 'cause"
+        },
+        {
+          "time": 172,
+          "text": "Those who trace starlight on their lonely roads"
+        },
+        {
+          "time": 178,
+          "text": "Will find their destinations in the cosmos"
+        },
+        {
+          "time": 184,
+          "text": "Meeting you in that swirling snowfall's"
+        },
+        {
+          "time": 189,
+          "text": "The most beautiful thing ever happened to me"
+        }
+      ]
     }
   ],
   "playlists": [
